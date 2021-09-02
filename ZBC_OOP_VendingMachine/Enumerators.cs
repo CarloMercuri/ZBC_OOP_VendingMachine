@@ -14,4 +14,13 @@ namespace ZBC_OOP_VendingMachine
         Ten = 10,
         Twenty = 20
     }
+
+    public enum MachineStatus
+    {
+        AcceptingCoins,
+        AcceptingSelection,
+        DeliveringSelection,
+        AdminMode,
+        ReleasingMoney
+    }
 }

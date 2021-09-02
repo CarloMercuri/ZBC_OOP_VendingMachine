@@ -48,6 +48,26 @@ namespace ZBC_OOP_VendingMachine
         }
 
         /// <summary>
+        /// Returns a key stroke that is limited to a-z, 0-9
+        /// </summary>
+        /// <returns></returns>
+        public static ConsoleKeyInfo GetValidKeyInput(bool hideInput = true)
+        {
+            while (true)
+            {
+                ConsoleKeyInfo key = Console.ReadKey(hideInput);
+
+                if(char.IsLetter(key.KeyChar) || char.IsDigit(key.KeyChar))
+                {
+                    return key;
+                } else
+                {
+                    continue;
+                }
+            }
+        }
+
+        /// <summary>
         /// Clears the last warning
         /// </summary>
         public static void ClearWarning()

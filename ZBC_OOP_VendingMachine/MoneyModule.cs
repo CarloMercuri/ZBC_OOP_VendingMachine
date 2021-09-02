@@ -41,9 +41,14 @@ namespace ZBC_OOP_VendingMachine
 
         }
 
-        public static void ReleaseCurrentMoney()
+        public static List<CoinType> ReleaseCurrentMoney()
         {
             List<CoinType> change = MoneyToCoins(availableMoney);
+
+            SetAvailableMoney(0);
+
+            return change;
+            
 
         }
 

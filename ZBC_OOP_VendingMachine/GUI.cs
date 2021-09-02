@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ZBC_OOP_VendingMachine
@@ -29,6 +30,7 @@ namespace ZBC_OOP_VendingMachine
         // Asciis
         private static string[] machineAscii;
         private static string[] coinSelectionAscii;
+        private static Dictionary<CoinType, string[]> coinsAsciiDictionary;
 
         public static void InitializeGUI(int windowWidth, int windowHeight)
         {
@@ -48,6 +50,13 @@ namespace ZBC_OOP_VendingMachine
 
         }
 
+        public static void DrawMakeSelectionMenu()
+        {
+
+        }
+
+
+
         public static void DrawCoinSelectionMenu()
         {
             for (int i = 0; i < 8; i++)
@@ -57,6 +66,48 @@ namespace ZBC_OOP_VendingMachine
             }
 
             ConsoleTools.PrintArray(coinSelectionAscii, 57, 6, null, ConsoleColor.White);
+        }
+
+        public static void AnimateGettingChange()
+        {
+
+            int leftX = 44;
+            int rightX = 51;
+            int yStart = 21;
+            int curY = yStart;
+            int lastY = curY;
+
+            for (int i = 0; i < 2; i++)
+            {
+                curY = yStart;
+
+                for (int j = 0; j < 3; j++)
+                {
+                    Console.SetCursorPosition(leftX, lastY);
+                    Console.Write(' ');
+
+                    Console.SetCursorPosition(rightX, lastY);
+                    Console.Write(' ');
+
+                    Console.SetCursorPosition(leftX, curY);
+                    Console.Write('.');
+
+                    Console.SetCursorPosition(rightX, curY);
+                    Console.Write('.');
+
+                    lastY = curY;
+                    curY++;
+                    Thread.Sleep(200);
+                }
+            }
+
+            // Last clean up
+            Console.SetCursorPosition(leftX, lastY);
+            Console.Write(' ');
+
+            Console.SetCursorPosition(rightX, lastY);
+            Console.Write(' ');
+
         }
 
         /// <summary>
@@ -122,6 +173,109 @@ namespace ZBC_OOP_VendingMachine
                 @"4 - 10kr",
                 @"5 - 20kr",
             };
+
+            coinsAsciiDictionary = new Dictionary<CoinType, string[]>();
+
+            string[] coinTwentyAscii = new string[]
+            {
+                @"    *  *",
+                @" *        *",
+                @"*    20    *",   
+                @"*    kr    *",
+                @" *        *",
+                @"    *  *",
+            };
+
+            coinsAsciiDictionary[CoinType.Twenty] = coinTwentyAscii;
+
+            string[] coinFiveAscii = new string[]
+            {
+                @"    * *",
+                @" *       *",
+                @"*   5 kr  *",
+                @" *       *",
+                @"    * *",
+            };
+
+            coinsAsciiDictionary[CoinType.Five] = coinFiveAscii;
+
+            string[] coinTenAscii = new string[]
+            {
+                @"  *  *",
+                @"*  10  *",
+                @"*  kr  *",
+                @"  *  *",
+            };
+
+            coinsAsciiDictionary[CoinType.Ten] = coinTenAscii;
+
+            string[] coinTwoAscii = new string[]
+            {
+                @"  *  *",
+                @"*  2   *",
+                @"*  kr  *",
+                @"  *  *",
+            };
+
+            coinsAsciiDictionary[CoinType.Two] = coinTwoAscii;
+
+            string[] coinOneAscii = new string[]
+            {
+                @" *  *",
+                @"*1 kr*",
+                @" *  *",
+            };
+
+            coinsAsciiDictionary[CoinType.One] = coinOneAscii;
+
+        }
+
+        public static void DrawChangeReceived(List<CoinType> changeList)
+        {
+            int twentys = changeList.Where(x => x == CoinType.Twenty).Count();
+            int tens = changeList.Where(x => x == CoinType.Ten).Count();
+            int fives = changeList.Where(x => x == CoinType.Five).Count();
+            int twos = changeList.Where(x => x == CoinType.Two).Count();
+            int ones = changeList.Where(x => x == CoinType.One).Count();
+
+            int xStart = 10;
+
+            int yStart = 32;
+
+            for (int i = 0; i < twentys; i++)
+            {
+                ConsoleTools.PrintArray(coinsAsciiDictionary[CoinType.Twenty], xStart, yStart, null, ConsoleColor.DarkYellow);
+
+                // next after a twenty is separated by 16 spaces
+                // The beauty of this is it will not happen if there are
+                // not twentys, so it will always start in the correct place no matter what
+                xStart += 16;
+            }
+
+            for (int i = 0; i < tens; i++)
+            {
+                ConsoleTools.PrintArray(coinsAsciiDictionary[CoinType.Ten], xStart, yStart + 2, null, ConsoleColor.DarkYellow);
+                xStart += 10;
+            }
+
+            for (int i = 0; i < fives; i++)
+            {
+                ConsoleTools.PrintArray(coinsAsciiDictionary[CoinType.Five], xStart, yStart + 1, null, ConsoleColor.Gray);
+                xStart += 13;
+            }
+
+            for (int i = 0; i < twos; i++)
+            {
+                ConsoleTools.PrintArray(coinsAsciiDictionary[CoinType.Two], xStart, yStart + 2, null, ConsoleColor.Gray);
+                xStart += 13;
+            }
+
+            for (int i = 0; i < ones; i++)
+            {
+                ConsoleTools.PrintArray(coinsAsciiDictionary[CoinType.One], xStart, yStart + 3, null, ConsoleColor.Gray);
+                xStart += 10;
+            }
+
         }
 
         /// <summary>
