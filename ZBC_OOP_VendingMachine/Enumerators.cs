@@ -19,7 +19,7 @@ namespace ZBC_OOP_VendingMachine
     {
         AcceptingCoins,
         AcceptingSelection,
-        DeliveringSelection,
+        ProcessingSelection,
         AdminMode,
         ReleasingMoney
     }

@@ -12,12 +12,19 @@ namespace ZBC_OOP_VendingMachine
 
         private static int availableMoney;
 
+        /// <summary>
+        /// The currently available money for use on the machine
+        /// </summary>
         public static int AvailableMoney
         {
             get { return availableMoney; }
             set { SetAvailableMoney(value) ; }
         }
 
+        /// <summary>
+        /// Changes the amount of available money to the specified amount
+        /// </summary>
+        /// <param name="amount"></param>
         private static void SetAvailableMoney(int amount)
         {
             availableMoney = amount;
@@ -26,6 +33,10 @@ namespace ZBC_OOP_VendingMachine
             AvailableMoneyUpdate?.Invoke(null, null);
         }
 
+        /// <summary>
+        /// Processes a coin insertion
+        /// </summary>
+        /// <param name="type"></param>
         public static void InsertCoin(CoinType type)
         {
             // Just to make sure
@@ -41,6 +52,10 @@ namespace ZBC_OOP_VendingMachine
 
         }
 
+        /// <summary>
+        /// Releases the currently available money
+        /// </summary>
+        /// <returns></returns>
         public static List<CoinType> ReleaseCurrentMoney()
         {
             List<CoinType> change = MoneyToCoins(availableMoney);
@@ -48,8 +63,6 @@ namespace ZBC_OOP_VendingMachine
             SetAvailableMoney(0);
 
             return change;
-            
-
         }
 
         /// <summary>
@@ -61,9 +74,9 @@ namespace ZBC_OOP_VendingMachine
         {
             List<CoinType> returnList = new List<CoinType>();
 
-            // Proud of this one liner. Since I'm representing coins with an enumerable, 
-            // might as well use the Enumerable.Repeat method. (int)(amount / 20) gives the amount
-            // of that coin that should be given, and Enumerable.Repeat creates a list with x amount of
+            // Since I'm representing coins with an enumerable, might as well use the Enumerable.Repeat method.
+            // (int)(amount / 20) gives the amount of that coin that should be given,
+            // and Enumerable.Repeat creates a list with x amount of
             // that enumerator, which then gets added to the return list with AddRange.
 
             returnList.AddRange(Enumerable.Repeat(CoinType.Twenty, (int)(amount / 20)));
@@ -82,57 +95,5 @@ namespace ZBC_OOP_VendingMachine
 
             return returnList;
         }
-
-        //public static List<CoinType> MoneyToCoins(decimal amount)
-        //{
-        //    List<CoinType> returnList = new List<CoinType>();
-
-        //    int twentys = (int)(amount / 20);
-        //    amount %= 20;
-
-
-        //    int tens = (int)(amount / 10);
-        //    amount %= 10;
-
-
-        //    int fives = (int)(amount / 5);
-        //    amount %= 5;
-
-
-        //    int twos = (int)(amount / 2);
-        //    amount %= 2;
-
-
-        //    int ones = (int)(amount / 1);
-        //    amount %= 1;
-
-        //    for (int i = 0; i < twentys; i++)
-        //    {
-        //        returnList.Add(CoinType.Twenty);
-        //    }
-
-
-        //    for (int i = 0; i < tens; i++)
-        //    {
-        //        returnList.Add(CoinType.Ten);
-        //    }
-
-        //    for (int i = 0; i < fives; i++)
-        //    {
-        //        returnList.Add(CoinType.Five);
-        //    }
-
-        //    for (int i = 0; i < twos; i++)
-        //    {
-        //        returnList.Add(CoinType.Two);
-        //    }
-
-        //    for (int i = 0; i < ones; i++)
-        //    {
-        //        returnList.Add(CoinType.One);
-        //    }
-
-        //    return returnList;
-        //}
     }
 }

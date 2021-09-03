@@ -10,11 +10,38 @@ namespace ZBC_OOP_VendingMachine
     {
         private static MachineStatus Status;
 
+        private static int machineMaxSlotContent;
+
+        public static int MachineMaxSlotContent
+        {
+            get { return machineMaxSlotContent; }
+            set { machineMaxSlotContent = value; }
+        }
+
+        private static string userSelection;
+
+        private static string UserSelection
+        {
+            get { return userSelection; }
+            set { UpdateUserSelection(value); }
+        }
+
+        //private static string userSelection;
+
+        private static void UpdateUserSelection(string value)
+        {
+            userSelection = value;
+
+            if(Status == MachineStatus.AcceptingSelection)
+            {
+                GUI.SelectionUpdated(value);
+            }
+
+        }
+
         public static void StartMainLogicLoop()
         {
             Status = MachineStatus.AcceptingCoins;
-
-            GUI.DrawChangeReceived(MoneyModule.MoneyToCoins(38));
 
             // MAIN LOOP
             while (true)
@@ -36,10 +63,28 @@ namespace ZBC_OOP_VendingMachine
                     case MachineStatus.AdminMode:
                         break;
 
-                    case MachineStatus.DeliveringSelection:
+                    case MachineStatus.ProcessingSelection:
+                        ProcessingSelectionLogic();
                         break;
                 }
             } // end main loop
+        }
+
+        private static void ProcessingSelectionLogic()
+        {
+            MachineProductSlot slot = MachineContents.GetProductSlot(UserSelection);
+
+
+            if(slot.AmountAvailable <= 0)
+            {
+                GUI.DisplaySelectionResults(false);
+            }
+            else
+            {
+                GUI.DisplaySelectionResults(true);
+            }
+
+
         }
 
         private static void ReleasingMoneyLogic()
@@ -50,6 +95,70 @@ namespace ZBC_OOP_VendingMachine
 
         private static void AcceptingSelectionLogic()
         {
+            GUI.DrawMakeSelectionMenu();
+
+            bool isSelectionValid = false;
+
+            UserSelection = "";
+
+            while (!isSelectionValid)
+            {
+                char key = ConsoleTools.GetValidKeyInput().KeyChar;
+
+                // Always check upper case
+                key = char.ToUpper(key);
+
+                // First we check the menu items, which always have top priority
+                switch (key)
+                {
+                    case 'S': // Switch to Make Selection
+                        // dont do anything
+                        return; // Back to the main loop
+
+                    case 'I': // Switch to Insert Coins
+                        Status = MachineStatus.AcceptingCoins;
+                        break;
+
+                    case 'R': // Switch to Admin mode
+                        Status = MachineStatus.ReleasingMoney;
+                        return;
+                }
+
+                if(UserSelection.Length == 0)
+                {
+                    // If it's A, B, C or D
+                    if (key >= 65 && key <= 68)
+                    {
+                        // If it's the first part of the selection, and it's a valid letter,
+                        // then add it to the selection
+                        UserSelection += key;
+                    }
+
+                    // Continue regardless
+                    continue;
+                }
+                else // If it's not 0, it should always only be 1
+                {
+                    if (char.IsDigit(key))
+                    {
+                        if (key >= 49 && key <= 53)
+                        {
+                            // The selection is now valid
+                            UserSelection += key;
+                            isSelectionValid = true;
+                            break;
+                        }
+                    }
+
+                    // If it's not a digit, or it's not a valid digit, back to input
+                    continue;
+                }
+            } // end of while loop
+
+            // The selection is now valid
+            Status = MachineStatus.ProcessingSelection;
+            return;
+            
 
         }
 
@@ -89,7 +198,7 @@ namespace ZBC_OOP_VendingMachine
                         Status = MachineStatus.AcceptingSelection;
                         return; // Back to the main loop
 
-                    case ConsoleKey.C: // Switch to Insert Coins
+                    case ConsoleKey.I: // Switch to Insert Coins
                         // Don't do anything
                         break;
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -27,9 +28,15 @@ namespace ZBC_OOP_VendingMachine
         [DllImport("kernel32.dll", ExactSpelling = true)]
         private static extern IntPtr GetConsoleWindow();
 
+        // Visual variables
+        private static Rectangle MainDisplayAreaRect;
+        private static (int X, int Y) userSelection;
+
         // Asciis
         private static string[] machineAscii;
         private static string[] coinSelectionAscii;
+        private static string[] productDisplayLeftAscii;
+        private static string[] productDisplayRightAscii;
         private static Dictionary<CoinType, string[]> coinsAsciiDictionary;
 
         public static void InitializeGUI(int windowWidth, int windowHeight)
@@ -41,24 +48,77 @@ namespace ZBC_OOP_VendingMachine
             InitializeAsciis();
 
             ConsoleTools.PrintArray(machineAscii, 2, 2, null, ConsoleColor.White);
-            ConsoleTools.PrintLine("S = Make a Selection, C = Insert Coins, R = Release money", 57, 2, ConsoleColor.White);
+            ConsoleTools.PrintLine("S = Make a Selection, I = Insert Coins, R = Release money", 57, 2, ConsoleColor.White);
+
+            MainDisplayAreaRect = new Rectangle(57, 3, Console.WindowWidth - 57, 30);
 
             ConsoleTools.SetWarningOptions(60, 2, 60);
 
             MoneyModule.AvailableMoneyUpdate += UpdateDisplayMoney;
             Console.CursorVisible = false;
 
+            ClearMainDisplayArea();
+
+        }
+
+        private static void ClearUserSelection()
+        {
+            Console.SetCursorPosition(userSelection.X, userSelection.Y);
+
+            // That should automatically clear unwanted stuff
+            Console.Write("   ");
+        }
+
+        public static void SelectionUpdated(string selection)
+        {
+            ClearUserSelection();
+
+            Console.SetCursorPosition(userSelection.X, userSelection.Y);
+
+            // That should automatically clear unwanted stuff
+            Console.Write(selection);
         }
 
         public static void DrawMakeSelectionMenu()
         {
+            ClearMainDisplayArea();
 
+            ConsoleTools.PrintLine("Write your selection: ", MainDisplayAreaRect.Left, 5, ConsoleColor.White);
+
+            // Store the cursor position at the end of the previous printline for later
+            (int Left, int Top) = Console.GetCursorPosition();
+            
+            int yStart = 8;
+
+            // Draw the list
+            ConsoleTools.PrintArray(productDisplayLeftAscii, MainDisplayAreaRect.Left, yStart, null, ConsoleColor.White);
+            ConsoleTools.PrintArray(productDisplayRightAscii, MainDisplayAreaRect.Left + 45, yStart, null, ConsoleColor.White);
+
+            // Place the cursor back to the stored position
+            userSelection.X = Left;
+            userSelection.Y = Top;
+            Console.SetCursorPosition(Left, Top);
+           
         }
 
+        /// <summary>
+        /// Clears the main display area completely
+        /// </summary>
+        public static void ClearMainDisplayArea()
+        {
+            string clearString = new string(' ', MainDisplayAreaRect.Width);
 
+            for (int i = 0; i <= MainDisplayAreaRect.Height; i++)
+            {
+                Console.SetCursorPosition(MainDisplayAreaRect.Left, MainDisplayAreaRect.Top + i);
+                Console.Write(clearString);
+            }
+        }
 
         public static void DrawCoinSelectionMenu()
         {
+            ClearMainDisplayArea();
+
             for (int i = 0; i < 8; i++)
             {
                 Console.SetCursorPosition(57, 6 + i);
@@ -128,6 +188,11 @@ namespace ZBC_OOP_VendingMachine
             Console.Write($"{money}kr");
         }
 
+        public static void DisplaySelectionResults(bool success)
+        {
+
+        }
+
         private static void InitializeAsciis()
         {
             machineAscii = new string[]
@@ -138,10 +203,10 @@ namespace ZBC_OOP_VendingMachine
                 @"|  | | |   | |   | |   | |   | |   | |  |   Cost    |",
                 @"|  | └ ┘   └ ┘   └ ┘   └ ┘   └ ┘   └ ┘  | ┌-------┐ |",
                 @"|  |  A1    A2    A3    A4    A5    A6  | |       | |",
-                @"|  | ================================== | └-------┘ |",
-                @"|  | ┌-┐   ┌-┐   ┌-┐   ┌-┐   ┌-┐   ┌-┐  |           |",
-                @"|  | | |   | |   | |   | |   | |   | |  |           |",
-                @"|  | └ ┘   └ ┘   └ ┘   └ ┘   └ ┘   └ ┘  |           |",
+                @"|  | ================================== | └-------┘ |", 
+                @"|  |                                    |           |",
+                @"|  |             ┌--┐              ┌--┐ |           |",
+                @"|  | [==]  [==]  └--┘  [>>]  [==]  └--┘ |           |",
                 @"|  |  B1    B2    B3    B4    B5    B6  | Available |",
                 @"|  | ================================== | ┌-------┐ |",
                 @"|  | ┌-┐   ┌-┐   ┌-┐   ┌-┐   ┌-┐   ┌-┐  | |       | |",
@@ -149,9 +214,9 @@ namespace ZBC_OOP_VendingMachine
                 @"|  | └ ┘   └ ┘   └ ┘   └ ┘   └ ┘   └ ┘  |   o o o   |",
                 @"|  |  C1    C2    C3    C4    C5    C6  |   o o o   |",
                 @"|  | ================================== |   o o o   |",
-                @"|  | ┌-┐   ┌-┐   ┌-┐   ┌-┐   ┌-┐   ┌-┐  |   = = =   |",
-                @"|  | | |   | |   | |   | |   | |   | |  |           |",
-                @"|  | └ ┘   └ ┘   └ ┘   └ ┘   └ ┘   └ ┘  |   ┌---┐   |",
+                @"|  |             ┌--┐                   |   = = =   |",
+                @"|  |             |  |              ┌--┐ |           |",
+                @"|  | [==]  [==]  └--┘  [>>]  [==]  └--┘ |   ┌---┐   |",
                 @"|  |  D1    D2    D3    D4    D5    D6  |   └---┘   |",
                 @"|  |____________________________________|           |",
                 @"|                                                   |",
@@ -161,6 +226,58 @@ namespace ZBC_OOP_VendingMachine
                 @"|  └------------------------------------┘           |",
                 @"|___________________________________________________|",
                 @"[_______]                                   [_______]",
+            };
+
+            productDisplayLeftAscii = new string[]
+            {
+                $"",
+                $"A1:   {MachineContents.GetProductSlot("A1").PrintToSelection()}",
+                $"",
+                $"A2:   {MachineContents.GetProductSlot("A2").PrintToSelection()}",
+                                $"",
+                $"A3:   {MachineContents.GetProductSlot("A3").PrintToSelection()}",
+                                $"",
+                $"A4:   {MachineContents.GetProductSlot("A4").PrintToSelection()}",
+                                $"",
+                $"A5:   {MachineContents.GetProductSlot("A5").PrintToSelection()}",
+                $"",
+                $"",
+                $"B1:   {MachineContents.GetProductSlot("B1").PrintToSelection()}",
+                                $"",
+                $"B2:   {MachineContents.GetProductSlot("B2").PrintToSelection()}",
+                                $"",
+                $"B3:   {MachineContents.GetProductSlot("B3").PrintToSelection()}",
+                                $"",
+                $"B4:   {MachineContents.GetProductSlot("B4").PrintToSelection()}",
+                                $"",
+                $"B5:   {MachineContents.GetProductSlot("B5").PrintToSelection()}",
+                $"",
+            };
+
+            productDisplayRightAscii = new string[]
+            {
+                $"",
+                $"C1:   {MachineContents.GetProductSlot("C1").PrintToSelection()}",
+                $"",
+                $"C2:   {MachineContents.GetProductSlot("C2").PrintToSelection()}",
+                                $"",
+                $"C3:   {MachineContents.GetProductSlot("C3").PrintToSelection()}",
+                                $"",
+                $"C4:   {MachineContents.GetProductSlot("C4").PrintToSelection()}",
+                                $"",
+                $"C5:   {MachineContents.GetProductSlot("C5").PrintToSelection()}",
+                $"",
+                $"",
+                $"D1:   {MachineContents.GetProductSlot("D1").PrintToSelection()}",
+                                $"",
+                $"D2:   {MachineContents.GetProductSlot("D2").PrintToSelection()}",
+                                $"",
+                $"D3:   {MachineContents.GetProductSlot("D3").PrintToSelection()}",
+                                $"",
+                $"D4:   {MachineContents.GetProductSlot("D4").PrintToSelection()}",
+                                $"",
+                $"D5:   {MachineContents.GetProductSlot("D5").PrintToSelection()}",
+                $"",
             };
 
             coinSelectionAscii = new string[]
