@@ -37,6 +37,8 @@ namespace ZBC_OOP_VendingMachine
         private static string[] coinSelectionAscii;
         private static string[] productDisplayLeftAscii;
         private static string[] productDisplayRightAscii;
+        private static string[] bottleAscii;
+        private static string[] bigBottleAscii;
         private static Dictionary<CoinType, string[]> coinsAsciiDictionary;
 
         public static void InitializeGUI(int windowWidth, int windowHeight)
@@ -47,7 +49,8 @@ namespace ZBC_OOP_VendingMachine
             LockConsole();
             InitializeAsciis();
 
-            ConsoleTools.PrintArray(machineAscii, 2, 2, null, ConsoleColor.White);
+            DrawMachine();
+            
             ConsoleTools.PrintLine("S = Make a Selection, I = Insert Coins, R = Release money", 57, 2, ConsoleColor.White);
 
             MainDisplayAreaRect = new Rectangle(57, 3, Console.WindowWidth - 57, 30);
@@ -58,7 +61,12 @@ namespace ZBC_OOP_VendingMachine
             Console.CursorVisible = false;
 
             ClearMainDisplayArea();
+                    
+        }
 
+        private static void DrawMachine()
+        {
+            ConsoleTools.PrintArray(machineAscii, 2, 2, null, ConsoleColor.White);
         }
 
         private static void ClearUserSelection()
@@ -199,14 +207,14 @@ namespace ZBC_OOP_VendingMachine
             {
                 @"____________________________________________________",
                 @"|  ┌------------------------------------┐           |",
-                @"|  | ┌-┐   ┌-┐   ┌-┐   ┌-┐   ┌-┐   ┌-┐  | Selection |",
-                @"|  | | |   | |   | |   | |   | |   | |  |   Cost    |",
-                @"|  | └ ┘   └ ┘   └ ┘   └ ┘   └ ┘   └ ┘  | ┌-------┐ |",
-                @"|  |  A1    A2    A3    A4    A5    A6  | |       | |",
-                @"|  | ================================== | └-------┘ |", 
-                @"|  |                                    |           |",
-                @"|  |             ┌--┐              ┌--┐ |           |",
-                @"|  | [==]  [==]  └--┘  [>>]  [==]  └--┘ |           |",
+                @"|  | ┌-┐   ┌-┐   ┌-┐   ┌-┐   ┌-┐   ┌-┐  |           |",
+                @"|  | | |   | |   | |   | |   | |   | |  |           |",
+                @"|  | └ ┘   └ ┘   └ ┘   └ ┘   └ ┘   └ ┘  |           |",
+                @"|  |  A1    A2    A3    A4    A5    A6  |           |",
+                @"|  | ================================== |           |",
+                @"|  | ┌-┐   ┌-┐   ┌-┐   ┌-┐   ┌-┐   ┌-┐  |           |",
+                @"|  | | |   | |   | |   | |   | |   | |  |           |",
+                @"|  | └ ┘   └ ┘   └ ┘   └ ┘   └ ┘   └ ┘  |           |",
                 @"|  |  B1    B2    B3    B4    B5    B6  | Available |",
                 @"|  | ================================== | ┌-------┐ |",
                 @"|  | ┌-┐   ┌-┐   ┌-┐   ┌-┐   ┌-┐   ┌-┐  | |       | |",
@@ -214,9 +222,9 @@ namespace ZBC_OOP_VendingMachine
                 @"|  | └ ┘   └ ┘   └ ┘   └ ┘   └ ┘   └ ┘  |   o o o   |",
                 @"|  |  C1    C2    C3    C4    C5    C6  |   o o o   |",
                 @"|  | ================================== |   o o o   |",
-                @"|  |             ┌--┐                   |   = = =   |",
-                @"|  |             |  |              ┌--┐ |           |",
-                @"|  | [==]  [==]  └--┘  [>>]  [==]  └--┘ |   ┌---┐   |",
+                @"|  | ┌-┐   ┌-┐   ┌-┐   ┌-┐   ┌-┐   ┌-┐  |   = = =   |",
+                @"|  | | |   | |   | |   | |   | |   | |  |           |",
+                @"|  | └ ┘   └ ┘   └ ┘   └ ┘   └ ┘   └ ┘  |   ┌---┐   |",
                 @"|  |  D1    D2    D3    D4    D5    D6  |   └---┘   |",
                 @"|  |____________________________________|           |",
                 @"|                                                   |",
@@ -241,6 +249,8 @@ namespace ZBC_OOP_VendingMachine
                                 $"",
                 $"A5:   {MachineContents.GetProductSlot("A5").PrintToSelection()}",
                 $"",
+                $"A6:   {MachineContents.GetProductSlot("A6").PrintToSelection()}",
+                $"",
                 $"",
                 $"B1:   {MachineContents.GetProductSlot("B1").PrintToSelection()}",
                                 $"",
@@ -251,6 +261,8 @@ namespace ZBC_OOP_VendingMachine
                 $"B4:   {MachineContents.GetProductSlot("B4").PrintToSelection()}",
                                 $"",
                 $"B5:   {MachineContents.GetProductSlot("B5").PrintToSelection()}",
+                $"",
+                $"B6:   {MachineContents.GetProductSlot("B6").PrintToSelection()}",
                 $"",
             };
 
@@ -267,6 +279,8 @@ namespace ZBC_OOP_VendingMachine
                                 $"",
                 $"C5:   {MachineContents.GetProductSlot("C5").PrintToSelection()}",
                 $"",
+                $"C6:   {MachineContents.GetProductSlot("C6").PrintToSelection()}",
+                $"",
                 $"",
                 $"D1:   {MachineContents.GetProductSlot("D1").PrintToSelection()}",
                                 $"",
@@ -277,6 +291,8 @@ namespace ZBC_OOP_VendingMachine
                 $"D4:   {MachineContents.GetProductSlot("D4").PrintToSelection()}",
                                 $"",
                 $"D5:   {MachineContents.GetProductSlot("D5").PrintToSelection()}",
+                $"",
+                $"D6:   {MachineContents.GetProductSlot("D6").PrintToSelection()}",
                 $"",
             };
 
@@ -345,6 +361,34 @@ namespace ZBC_OOP_VendingMachine
 
             coinsAsciiDictionary[CoinType.One] = coinOneAscii;
 
+            bottleAscii = new string[]
+            {
+                @"┌-┐",
+                @"| |",
+                @"└ ┘"
+            };
+
+             bigBottleAscii = new string[]
+            {
+                @"     ___      ",
+                @"    |___|     ",
+                @"    (___)            ",
+                @"    |   |        ",
+                @"   /     \       ",
+                @"  /       \      ",
+                @" |         |    ",
+                @" |---------|     ",
+                $" |         |     ",
+                @" |---------|     ",
+                @" |         |     ",
+                @" └---------┘     ",
+            };
+
+        }
+
+        private static void ReDrawBottle(string slotName)
+        {
+
         }
 
         public static void DrawChangeReceived(List<CoinType> changeList)
@@ -392,6 +436,126 @@ namespace ZBC_OOP_VendingMachine
                 ConsoleTools.PrintArray(coinsAsciiDictionary[CoinType.One], xStart, yStart + 3, null, ConsoleColor.Gray);
                 xStart += 10;
             }
+
+        }
+
+        public static void DeliverProduct(string slotName)
+        {
+            // Capital A is 65, capital D is 68. This way we get a number 
+            // between 0 and 3. At this point it's already been checked 
+            // to be a valid selection, so it shouldn't give any error.
+
+            // 4 is the start Y (top of the A bottles).
+            // 5 is the vertical spacing between the bottles
+            int yPos = 4 + 5 * (slotName[0] - 65);
+
+            // 7 is the start X (left of the first bottle column)
+            // 6 is the horizontal spacing between the bottles
+            int xPos = 7 + 6 * (Int32.Parse(slotName.Substring(1, 1)) - 1);
+
+            // Clear main area
+            ClearMainDisplayArea();
+
+            // Animate the bottle
+
+            // Clear
+            for (int i = 0; i < 3; i++)
+            {
+                // Magic numbers
+                Console.SetCursorPosition(xPos, yPos + i);
+                Console.Write("   ");
+            }
+
+            Console.SetCursorPosition(xPos, yPos + 1);
+            Console.Write("┌-┐");
+
+            Console.SetCursorPosition(xPos, yPos + 2);
+            Console.Write("| |");
+
+            Thread.Sleep(500);
+
+            // Clear first line
+            Console.SetCursorPosition(xPos, yPos + 1);
+            Console.Write("   ");
+
+            Console.SetCursorPosition(xPos, yPos + 2);
+            Console.Write("┌-┐");
+
+            Thread.Sleep(500);
+
+            // Now it's empty
+            Console.SetCursorPosition(xPos, yPos + 2);
+            Console.Write("   ");
+
+            Thread.Sleep(500);
+
+            // Redraw the bottle
+            ConsoleTools.PrintArray(bottleAscii, xPos, yPos, null, ConsoleColor.White);
+
+            // clear PUSH
+            Console.SetCursorPosition(6, 26);
+            Console.Write(new string(' ', 36));
+
+            Console.SetCursorPosition(6, 27);
+            Console.Write(new string('_', 36));
+
+            Thread.Sleep(500);
+
+            Console.SetCursorPosition(6, 27);
+            Console.Write(new string(' ', 36));
+
+            Console.SetCursorPosition(6, 26);
+            Console.Write(new string('_', 36));
+
+            Thread.Sleep(500);
+
+            Console.SetCursorPosition(6, 26);
+            Console.Write(new string(' ', 36));
+
+            Console.SetCursorPosition(6, 25);
+            Console.Write(new string('_', 36));
+
+            Thread.Sleep(500);
+
+            Console.SetCursorPosition(6, 25);
+            Console.Write(new string('-', 36));
+
+
+
+            // Reset PUSH
+            Console.SetCursorPosition(6, 26);
+            Console.Write("               PUSH                 ");
+
+            // Main area now
+
+
+            // Text
+            Console.SetCursorPosition(MainDisplayAreaRect.X + 2, MainDisplayAreaRect.Y + 7);
+            Console.Write("Congratulations! You got:");
+
+            // Print big bottle
+
+            string productName = MachineContents.GetProductSlot(slotName).Product.Name;
+            ConsoleTools.PrintArray(bigBottleAscii, MainDisplayAreaRect.X + 4, MainDisplayAreaRect.Y + 10, null, ConsoleColor.White);
+
+            // Add the product name
+            Console.SetCursorPosition(MainDisplayAreaRect.X + 17, MainDisplayAreaRect.Y + 18);
+            Console.Write($"1x {productName}");
+
+        }
+
+        public static void ShowSelectionMessage(string msg)
+        {
+            ClearMainDisplayArea();
+
+            Console.SetCursorPosition(MainDisplayAreaRect.X + 2, MainDisplayAreaRect.Y + 4);
+            Console.Write(msg);
+
+            Console.SetCursorPosition(MainDisplayAreaRect.X + 2, MainDisplayAreaRect.Y + 6);
+
+            // TO-DO: Better message
+            Console.Write("Press S to make a new selection, or make another menu choice");
+
 
         }
 

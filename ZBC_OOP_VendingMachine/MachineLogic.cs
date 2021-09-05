@@ -101,6 +101,9 @@ namespace ZBC_OOP_VendingMachine
 
             UserSelection = "";
 
+            // STEP ONE: Get a valid (a-b-c-d, 1 to 9) selection
+            // Nothing to do with how many products are left and so on.
+
             while (!isSelectionValid)
             {
                 char key = ConsoleTools.GetValidKeyInput().KeyChar;
@@ -117,7 +120,7 @@ namespace ZBC_OOP_VendingMachine
 
                     case 'I': // Switch to Insert Coins
                         Status = MachineStatus.AcceptingCoins;
-                        break;
+                        return;
 
                     case 'R': // Switch to Admin mode
                         Status = MachineStatus.ReleasingMoney;
@@ -141,7 +144,7 @@ namespace ZBC_OOP_VendingMachine
                 {
                     if (char.IsDigit(key))
                     {
-                        if (key >= 49 && key <= 53)
+                        if (key >= 49 && key <= 54)
                         {
                             // The selection is now valid
                             UserSelection += key;
@@ -156,11 +159,98 @@ namespace ZBC_OOP_VendingMachine
             } // end of while loop
 
             // The selection is now valid
-            Status = MachineStatus.ProcessingSelection;
-            return;
-            
 
+            MachineProductSlot slot = MachineContents.GetProductSlot(UserSelection);
+
+            // End of process if true
+            if(slot.AmountAvailable <= 0)
+            {
+
+                GUI.ShowSelectionMessage($"Product '{slot.Product.Name}' in slot {userSelection} is not available.");
+
+                char key = ConsoleTools.GetValidKeyInput().KeyChar;
+
+                // Always check upper case
+                key = char.ToUpper(key);
+
+                // First we check the menu items, which always have top priority
+                switch (key)
+                {
+                    case 'S': // Switch to Make Selection
+                        // dont do anything
+                        return; // Back to the main loop
+
+                    case 'I': // Switch to Insert Coins
+                        Status = MachineStatus.AcceptingCoins;
+                        return;
+
+                    case 'R': // Switch to Admin mode
+                        Status = MachineStatus.ReleasingMoney;
+                        return;
+                }
+            } // end of if < 0
+
+            // End of process if true
+            if(slot.Product.Price > MoneyModule.AvailableMoney)
+            {
+                GUI.ShowSelectionMessage($"Not enough money available! {slot.Product.Name} costs {slot.Product.Price}kr.");
+
+                char key = ConsoleTools.GetValidKeyInput().KeyChar;
+
+                // Always check upper case
+                key = char.ToUpper(key);
+
+                // First we check the menu items, which always have top priority
+                switch (key)
+                {
+                    case 'S': // Switch to Make Selection
+                        // dont do anything
+                        return; // Back to the main loop
+
+                    case 'I': // Switch to Insert Coins
+                        Status = MachineStatus.AcceptingCoins;
+                        return; 
+
+                    case 'R': // Switch to Admin mode
+                        Status = MachineStatus.ReleasingMoney;
+                        return;
+                }
+            } // end of price too high
+
+            // DELIVER THE ITEM
+
+            // Decrease the count for that slot
+            slot.AmountAvailable -= 1;
+
+            if (slot.AmountAvailable < 0) slot.AmountAvailable = 0;
+
+            MoneyModule.AvailableMoney -= slot.Product.Price;
+
+            // Blocking animation
+            GUI.DeliverProduct(UserSelection);
+
+            char keyChoice = ConsoleTools.GetValidKeyInput().KeyChar;
+
+            // Always check upper case
+            keyChoice = char.ToUpper(keyChoice);
+
+            // First we check the menu items, which always have top priority
+            switch (keyChoice)
+            {
+                case 'S': // Switch to Make Selection
+                          // dont do anything
+                    return; // Back to the main loop
+
+                case 'I': // Switch to Insert Coins
+                    Status = MachineStatus.AcceptingCoins;
+                    return;
+
+                case 'R': // Switch to Admin mode
+                    Status = MachineStatus.ReleasingMoney;
+                    return;
+            }
         }
+
 
         private static void AcceptingCoinsLogic()
         {
