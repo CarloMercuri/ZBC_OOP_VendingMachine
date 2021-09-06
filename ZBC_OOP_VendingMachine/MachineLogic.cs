@@ -87,10 +87,39 @@ namespace ZBC_OOP_VendingMachine
 
         }
 
+        private static void WaitForMenuChoice()
+        {
+            while (true)
+            {
+                char key = ConsoleTools.GetValidKeyInput().KeyChar;
+
+                // Always check upper case
+                key = char.ToUpper(key);
+
+                // First we check the menu items, which always have top priority
+                switch (key)
+                {
+                    case 'S': // Switch to Make Selection
+                              // dont do anything
+                        return; // Back to the main loop
+
+                    case 'I': // Switch to Insert Coins
+                        Status = MachineStatus.AcceptingCoins;
+                        return;
+
+                    case 'R': // Switch to Admin mode
+                        Status = MachineStatus.ReleasingMoney;
+                        return;
+                }
+            }
+        }
+
         private static void ReleasingMoneyLogic()
         {
-            GUI.AnimateGettingChange();
-            Status = MachineStatus.AcceptingCoins;
+            // It's a animation blocking method, so when it's done we can change back to default
+            GUI.MoneyReleased(MoneyModule.ReleaseCurrentMoney());
+
+            WaitForMenuChoice();
         }
 
         private static void AcceptingSelectionLogic()
@@ -168,87 +197,26 @@ namespace ZBC_OOP_VendingMachine
 
                 GUI.ShowSelectionMessage($"Product '{slot.Product.Name}' in slot {userSelection} is not available.");
 
-                char key = ConsoleTools.GetValidKeyInput().KeyChar;
-
-                // Always check upper case
-                key = char.ToUpper(key);
-
-                // First we check the menu items, which always have top priority
-                switch (key)
-                {
-                    case 'S': // Switch to Make Selection
-                        // dont do anything
-                        return; // Back to the main loop
-
-                    case 'I': // Switch to Insert Coins
-                        Status = MachineStatus.AcceptingCoins;
-                        return;
-
-                    case 'R': // Switch to Admin mode
-                        Status = MachineStatus.ReleasingMoney;
-                        return;
-                }
+                WaitForMenuChoice();
             } // end of if < 0
 
-            // End of process if true
-            if(slot.Product.Price > MoneyModule.AvailableMoney)
+            // Returns false if there is not enough money
+            if (!MoneyModule.FinalizePurchase(slot.Product))
             {
                 GUI.ShowSelectionMessage($"Not enough money available! {slot.Product.Name} costs {slot.Product.Price}kr.");
 
-                char key = ConsoleTools.GetValidKeyInput().KeyChar;
+                WaitForMenuChoice();
+            }
 
-                // Always check upper case
-                key = char.ToUpper(key);
+            // There's enough products, and enough money. User can get the product
 
-                // First we check the menu items, which always have top priority
-                switch (key)
-                {
-                    case 'S': // Switch to Make Selection
-                        // dont do anything
-                        return; // Back to the main loop
-
-                    case 'I': // Switch to Insert Coins
-                        Status = MachineStatus.AcceptingCoins;
-                        return; 
-
-                    case 'R': // Switch to Admin mode
-                        Status = MachineStatus.ReleasingMoney;
-                        return;
-                }
-            } // end of price too high
-
-            // DELIVER THE ITEM
-
-            // Decrease the count for that slot
-            slot.AmountAvailable -= 1;
-
-            if (slot.AmountAvailable < 0) slot.AmountAvailable = 0;
-
-            MoneyModule.AvailableMoney -= slot.Product.Price;
-
+            MachineContents.ReleaseProduct(UserSelection);
+             
             // Blocking animation
             GUI.DeliverProduct(UserSelection);
 
-            char keyChoice = ConsoleTools.GetValidKeyInput().KeyChar;
 
-            // Always check upper case
-            keyChoice = char.ToUpper(keyChoice);
-
-            // First we check the menu items, which always have top priority
-            switch (keyChoice)
-            {
-                case 'S': // Switch to Make Selection
-                          // dont do anything
-                    return; // Back to the main loop
-
-                case 'I': // Switch to Insert Coins
-                    Status = MachineStatus.AcceptingCoins;
-                    return;
-
-                case 'R': // Switch to Admin mode
-                    Status = MachineStatus.ReleasingMoney;
-                    return;
-            }
+            WaitForMenuChoice();
         }
 
 

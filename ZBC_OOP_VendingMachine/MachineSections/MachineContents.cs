@@ -43,6 +43,19 @@ namespace ZBC_OOP_VendingMachine
             Contents.Add("D6", new MachineProductSlot(new BountyBar(), MachineLogic.MachineMaxSlotContent));
         }
 
+        /// <summary>
+        /// Removes a product from the slot
+        /// </summary>
+        /// <param name="slot"></param>
+        public static void ReleaseProduct(string slot)
+        {
+            MachineProductSlot pSlot = GetProductSlot(slot);
+
+            pSlot.AmountAvailable -= 1;
+
+            if (pSlot.AmountAvailable <= 0) pSlot.AmountAvailable = 0;
+        }
+
         public static MachineProductSlot GetProductSlot(string slot)
         {
             return Contents[slot];

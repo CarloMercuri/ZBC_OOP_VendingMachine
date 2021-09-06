@@ -136,7 +136,7 @@ namespace ZBC_OOP_VendingMachine
             ConsoleTools.PrintArray(coinSelectionAscii, 57, 6, null, ConsoleColor.White);
         }
 
-        public static void AnimateGettingChange()
+        public static void MoneyReleased(List<CoinType> changeList)
         {
 
             int leftX = 44;
@@ -175,6 +175,8 @@ namespace ZBC_OOP_VendingMachine
 
             Console.SetCursorPosition(rightX, lastY);
             Console.Write(' ');
+
+            DrawChangeReceived(changeList);
 
         }
 

@@ -18,7 +18,6 @@ namespace ZBC_OOP_VendingMachine
         public static int AvailableMoney
         {
             get { return availableMoney; }
-            set { SetAvailableMoney(value) ; }
         }
 
         /// <summary>
@@ -47,11 +46,6 @@ namespace ZBC_OOP_VendingMachine
             
         }
 
-        public static void GiveChange()
-        {
-
-        }
-
         /// <summary>
         /// Releases the currently available money
         /// </summary>
@@ -65,12 +59,25 @@ namespace ZBC_OOP_VendingMachine
             return change;
         }
 
+        public static bool FinalizePurchase(IMachineProduct product)
+        {
+            if(product.Price <= availableMoney)
+            {
+                availableMoney -= product.Price;
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
         /// <summary>
         /// Returns a list containing the amount split in coins
         /// </summary>
         /// <param name="amount"></param>
         /// <returns></returns>
-        public static List<CoinType> MoneyToCoins(decimal amount)
+        private static List<CoinType> MoneyToCoins(decimal amount)
         {
             List<CoinType> returnList = new List<CoinType>();
 
