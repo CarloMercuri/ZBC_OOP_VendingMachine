@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace ZBC_OOP_VendingMachine
 {
-    public static class GUI
+    public class GUI
     {
         // Console size hack, makes it so you cannot resize it
 
@@ -28,21 +28,28 @@ namespace ZBC_OOP_VendingMachine
         [DllImport("kernel32.dll", ExactSpelling = true)]
         private static extern IntPtr GetConsoleWindow();
 
+        // References
+
+        private MachineLogic _logic;
+
+
         // Visual variables
-        private static Rectangle MainDisplayAreaRect;
-        private static (int X, int Y) userSelection;
+        private Rectangle MainDisplayAreaRect;
+        private (int X, int Y) userSelection;
 
         // Asciis
-        private static string[] machineAscii;
-        private static string[] coinSelectionAscii;
-        private static string[] productDisplayLeftAscii;
-        private static string[] productDisplayRightAscii;
-        private static string[] bottleAscii;
-        private static string[] bigBottleAscii;
-        private static Dictionary<CoinType, string[]> coinsAsciiDictionary;
+        private string[] machineAscii;
+        private string[] coinSelectionAscii;
+        private string[] productDisplayLeftAscii;
+        private string[] productDisplayRightAscii;
+        private string[] bottleAscii;
+        private string[] bigBottleAscii;
+        private Dictionary<CoinType, string[]> coinsAsciiDictionary;
 
-        public static void InitializeGUI(int windowWidth, int windowHeight, MoneyModule _moneyModule)
+
+        public void InitializeGUI(int windowWidth, int windowHeight, MachineLogic logic, MoneyModule moneyModule)
         {
+            _logic = logic;
             // Size and lock the console.
             Console.SetWindowSize(windowWidth, windowHeight);
             Console.SetBufferSize(windowWidth, windowHeight);
@@ -57,19 +64,19 @@ namespace ZBC_OOP_VendingMachine
 
             ConsoleTools.SetWarningOptions(60, 2, 60);
 
-            _moneyModule.AvailableMoneyUpdate += UpdateDisplayMoney;
+            moneyModule.AvailableMoneyUpdate += UpdateDisplayMoney;
             Console.CursorVisible = false;
 
             ClearMainDisplayArea();
                     
         }
 
-        private static void DrawMachine()
+        private void DrawMachine()
         {
             ConsoleTools.PrintArray(machineAscii, 2, 2, null, ConsoleColor.White);
         }
 
-        private static void ClearUserSelection()
+        private void ClearUserSelection()
         {
             Console.SetCursorPosition(userSelection.X, userSelection.Y);
 
@@ -77,7 +84,7 @@ namespace ZBC_OOP_VendingMachine
             Console.Write("   ");
         }
 
-        public static void SelectionUpdated(string selection)
+        public void SelectionUpdated(string selection)
         {
             ClearUserSelection();
 
@@ -87,7 +94,7 @@ namespace ZBC_OOP_VendingMachine
             Console.Write(selection);
         }
 
-        public static void DrawMakeSelectionMenu()
+        public void DrawMakeSelectionMenu()
         {
             ClearMainDisplayArea();
 
@@ -111,7 +118,7 @@ namespace ZBC_OOP_VendingMachine
         /// <summary>
         /// Clears the main display area completely
         /// </summary>
-        public static void ClearMainDisplayArea()
+        public void ClearMainDisplayArea()
         {
             string clearString = new string(' ', MainDisplayAreaRect.Width);
 
@@ -122,7 +129,7 @@ namespace ZBC_OOP_VendingMachine
             }
         }
 
-        public static void DrawCoinSelectionMenu()
+        public void DrawCoinSelectionMenu()
         {
             ClearMainDisplayArea();
 
@@ -135,7 +142,7 @@ namespace ZBC_OOP_VendingMachine
             ConsoleTools.PrintArray(coinSelectionAscii, 57, 6, null, ConsoleColor.White);
         }
 
-        public static void MoneyReleased(List<CoinType> changeList)
+        public void MoneyReleased(List<CoinType> changeList)
         {
 
             int leftX = 44;
@@ -179,7 +186,7 @@ namespace ZBC_OOP_VendingMachine
 
         }
 
-        public static MachineStatus GetMenuChoice()
+        public MachineStatus GetMenuChoice()
         {
             while (true)
             {
@@ -206,7 +213,7 @@ namespace ZBC_OOP_VendingMachine
             }
         }
 
-        private static void ClearBottomArea()
+        private void ClearBottomArea()
         {
             for (int i = 32; i < Console.WindowHeight - 1; i++)
             {
@@ -221,7 +228,7 @@ namespace ZBC_OOP_VendingMachine
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private static void UpdateDisplayMoney(object sender, AvailableMoneyUpdateEventArgs args)
+        private void UpdateDisplayMoney(object sender, AvailableMoneyUpdateEventArgs args)
         {
             int money = args.CurrentMoney;
 
@@ -234,12 +241,12 @@ namespace ZBC_OOP_VendingMachine
             Console.Write($"{money}kr");
         }
 
-        public static void DisplaySelectionResults(bool success)
+        public void DisplaySelectionResults(bool success)
         {
 
         }
 
-        private static void InitializeAsciis()
+        private void InitializeAsciis()
         {
             machineAscii = new string[]
             {
@@ -277,60 +284,60 @@ namespace ZBC_OOP_VendingMachine
             productDisplayLeftAscii = new string[]
             {
                 $"",
-                $"A1:   {MachineContents.GetProductSlot("A1").PrintToSelection()}",
+                $"A1:   {_logic.GetProductSlot("A1").PrintToSelection()}",
                 $"",
-                $"A2:   {MachineContents.GetProductSlot("A2").PrintToSelection()}",
+                $"A2:   {_logic.GetProductSlot("A2").PrintToSelection()}",
                                 $"",
-                $"A3:   {MachineContents.GetProductSlot("A3").PrintToSelection()}",
+                $"A3:   {_logic.GetProductSlot("A3").PrintToSelection()}",
                                 $"",
-                $"A4:   {MachineContents.GetProductSlot("A4").PrintToSelection()}",
+                $"A4:   {_logic.GetProductSlot("A4").PrintToSelection()}",
                                 $"",
-                $"A5:   {MachineContents.GetProductSlot("A5").PrintToSelection()}",
+                $"A5:   {_logic.GetProductSlot("A5").PrintToSelection()}",
                 $"",
-                $"A6:   {MachineContents.GetProductSlot("A6").PrintToSelection()}",
+                $"A6:   {_logic.GetProductSlot("A6").PrintToSelection()}",
                 $"",
                 $"",
-                $"B1:   {MachineContents.GetProductSlot("B1").PrintToSelection()}",
+                $"B1:   {_logic.GetProductSlot("B1").PrintToSelection()}",
                                 $"",
-                $"B2:   {MachineContents.GetProductSlot("B2").PrintToSelection()}",
+                $"B2:   {_logic.GetProductSlot("B2").PrintToSelection()}",
                                 $"",
-                $"B3:   {MachineContents.GetProductSlot("B3").PrintToSelection()}",
+                $"B3:   {_logic.GetProductSlot("B3").PrintToSelection()}",
                                 $"",
-                $"B4:   {MachineContents.GetProductSlot("B4").PrintToSelection()}",
+                $"B4:   {_logic.GetProductSlot("B4").PrintToSelection()}",
                                 $"",
-                $"B5:   {MachineContents.GetProductSlot("B5").PrintToSelection()}",
+                $"B5:   {_logic.GetProductSlot("B5").PrintToSelection()}",
                 $"",
-                $"B6:   {MachineContents.GetProductSlot("B6").PrintToSelection()}",
+                $"B6:   {_logic.GetProductSlot("B6").PrintToSelection()}",
                 $"",
             };
 
             productDisplayRightAscii = new string[]
             {
                 $"",
-                $"C1:   {MachineContents.GetProductSlot("C1").PrintToSelection()}",
+                $"C1:   {_logic.GetProductSlot("C1").PrintToSelection()}",
                 $"",
-                $"C2:   {MachineContents.GetProductSlot("C2").PrintToSelection()}",
+                $"C2:   {_logic.GetProductSlot("C2").PrintToSelection()}",
                                 $"",
-                $"C3:   {MachineContents.GetProductSlot("C3").PrintToSelection()}",
+                $"C3:   {_logic.GetProductSlot("C3").PrintToSelection()}",
                                 $"",
-                $"C4:   {MachineContents.GetProductSlot("C4").PrintToSelection()}",
+                $"C4:   {_logic.GetProductSlot("C4").PrintToSelection()}",
                                 $"",
-                $"C5:   {MachineContents.GetProductSlot("C5").PrintToSelection()}",
+                $"C5:   {_logic.GetProductSlot("C5").PrintToSelection()}",
                 $"",
-                $"C6:   {MachineContents.GetProductSlot("C6").PrintToSelection()}",
+                $"C6:   {_logic.GetProductSlot("C6").PrintToSelection()}",
                 $"",
                 $"",
-                $"D1:   {MachineContents.GetProductSlot("D1").PrintToSelection()}",
+                $"D1:   {_logic.GetProductSlot("D1").PrintToSelection()}",
                                 $"",
-                $"D2:   {MachineContents.GetProductSlot("D2").PrintToSelection()}",
+                $"D2:   {_logic.GetProductSlot("D2").PrintToSelection()}",
                                 $"",
-                $"D3:   {MachineContents.GetProductSlot("D3").PrintToSelection()}",
+                $"D3:   {_logic.GetProductSlot("D3").PrintToSelection()}",
                                 $"",
-                $"D4:   {MachineContents.GetProductSlot("D4").PrintToSelection()}",
+                $"D4:   {_logic.GetProductSlot("D4").PrintToSelection()}",
                                 $"",
-                $"D5:   {MachineContents.GetProductSlot("D5").PrintToSelection()}",
+                $"D5:   {_logic.GetProductSlot("D5").PrintToSelection()}",
                 $"",
-                $"D6:   {MachineContents.GetProductSlot("D6").PrintToSelection()}",
+                $"D6:   {_logic.GetProductSlot("D6").PrintToSelection()}",
                 $"",
             };
 
@@ -424,12 +431,12 @@ namespace ZBC_OOP_VendingMachine
 
         }
 
-        private static void ReDrawBottle(string slotName)
+        private void ReDrawBottle(string slotName)
         {
 
         }
 
-        public static void DrawChangeReceived(List<CoinType> changeList)
+        public void DrawChangeReceived(List<CoinType> changeList)
         {
             int twentys = changeList.Where(x => x == CoinType.Twenty).Count();
             int tens = changeList.Where(x => x == CoinType.Ten).Count();
@@ -477,7 +484,7 @@ namespace ZBC_OOP_VendingMachine
 
         }
 
-        public static void DeliverProduct(string slotName)
+        public void DeliverProduct(string slotName)
         {
             // Capital A is 65, capital D is 68. This way we get a number 
             // between 0 and 3. At this point it's already been checked 
@@ -573,7 +580,7 @@ namespace ZBC_OOP_VendingMachine
 
             // Print big bottle
 
-            string productName = MachineContents.GetProductSlot(slotName).Product.Name;
+            string productName = _logic.GetProductSlot(slotName).Product.Name;
             ConsoleTools.PrintArray(bigBottleAscii, MainDisplayAreaRect.X + 4, MainDisplayAreaRect.Y + 10, null, ConsoleColor.White);
 
             // Add the product name
@@ -582,7 +589,7 @@ namespace ZBC_OOP_VendingMachine
 
         }
 
-        public static void ShowSelectionMessage(string msg)
+        public void ShowSelectionMessage(string msg)
         {
             ClearMainDisplayArea();
 
@@ -600,7 +607,7 @@ namespace ZBC_OOP_VendingMachine
         /// <summary>
         /// Makes it so you cannot resize or maximize it
         /// </summary>
-        public static void LockConsole()
+        public void LockConsole()
         {
             IntPtr handle = GetConsoleWindow();
             IntPtr sysMenu = GetSystemMenu(handle, false);

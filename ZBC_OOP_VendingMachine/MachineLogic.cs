@@ -6,52 +6,58 @@ using System.Threading.Tasks;
 
 namespace ZBC_OOP_VendingMachine
 {
-    public static class MachineLogic
+    public class MachineLogic
     {
-        private static MoneyModule _moneyModule;
+        private MoneyModule _moneyModule;
 
-        private static MachineStatus Status;
+        private MachineStatus Status;
 
-        private static int machineMaxSlotContent;
+        private int machineMaxSlotContent;
 
-        public static int MachineMaxSlotContent
+        public int MachineMaxSlotContent
         {
             get { return machineMaxSlotContent; }
             set { machineMaxSlotContent = value; }
         }
 
-        private static string userSelection;
+        private string userSelection;
 
-        private static string UserSelection
+        private string UserSelection
         {
             get { return userSelection; }
             set { UpdateUserSelection(value); }
         }
 
+        private MachineContents _contents;
+        private GUI _gui;
 
-        public static void InitializeVendingMachine()
+
+        public void InitializeVendingMachine(MachineContents contents, GUI gui, MoneyModule moneyModule)
         {
-            _moneyModule = new MoneyModule();
+            _contents = contents;
+            _gui = gui;
+
+            _moneyModule = moneyModule;
             MachineMaxSlotContent = 7;
-            MachineContents.InitializeMachineContents();
-            GUI.InitializeGUI(160, 40, _moneyModule);
+            contents.InitializeMachineContents(machineMaxSlotContent);
+            gui.InitializeGUI(160, 40, this, moneyModule);
             Status = MachineStatus.AcceptingCoins;
             MainLogicLoop();
  
         }
 
-        private static void UpdateUserSelection(string value)
+        private void UpdateUserSelection(string value)
         {
             userSelection = value;
 
             if(Status == MachineStatus.AcceptingSelection)
             {
-                GUI.SelectionUpdated(value);
+                _gui.SelectionUpdated(value);
             }
 
         }
 
-        public static void MainLogicLoop()
+        public void MainLogicLoop()
         {
             // MAIN LOOP
             while (true)
@@ -80,45 +86,45 @@ namespace ZBC_OOP_VendingMachine
             } // end main loop
         }
 
-        private static void ProcessingSelectionLogic()
+        private void ProcessingSelectionLogic()
         {
-            MachineProductSlot slot = MachineContents.GetProductSlot(UserSelection);
+            MachineProductSlot slot = _contents.GetProductSlot(UserSelection);
 
             if(slot.AmountAvailable <= 0)
             {
-                GUI.DisplaySelectionResults(false);
+                _gui.DisplaySelectionResults(false);
             }
             else
             {
-                GUI.DisplaySelectionResults(true);
+                _gui.DisplaySelectionResults(true);
             }
         }
 
-        private static void WaitForMenuChoice()
+        private void WaitForMenuChoice()
         {
-            SetStatus(GUI.GetMenuChoice());
+            SetStatus(_gui.GetMenuChoice());
             MainLogicLoop();
         }
 
-        public static void SetStatus(MachineStatus _status)
+        public void SetStatus(MachineStatus _status)
         {
             Status = _status;
         }
 
-        private static void ReleasingMoneyLogic()
+        private void ReleasingMoneyLogic()
         {
             if(_moneyModule.AvailableMoney > 0)
             {
                 // It's a animation blocking method, so when it's done we can change back to default
-                GUI.MoneyReleased(_moneyModule.ReleaseCurrentMoney());
+                _gui.MoneyReleased(_moneyModule.ReleaseCurrentMoney());
 
                 WaitForMenuChoice();
             }
         }
 
-        private static void AcceptingSelectionLogic()
+        private void AcceptingSelectionLogic()
         {
-            GUI.DrawMakeSelectionMenu();
+            _gui.DrawMakeSelectionMenu();
 
             bool isSelectionValid = false;
 
@@ -183,13 +189,13 @@ namespace ZBC_OOP_VendingMachine
 
             // The selection is now valid
 
-            MachineProductSlot slot = MachineContents.GetProductSlot(UserSelection);
+            MachineProductSlot slot = _contents.GetProductSlot(UserSelection);
 
             // End of process if true
             if(slot.AmountAvailable <= 0)
             {
 
-                GUI.ShowSelectionMessage($"Product '{slot.Product.Name}' in slot {userSelection} is not available.");
+                _gui.ShowSelectionMessage($"Product '{slot.Product.Name}' in slot {userSelection} is not available.");
 
                 WaitForMenuChoice();
             } // end of if < 0
@@ -197,26 +203,31 @@ namespace ZBC_OOP_VendingMachine
             // Returns false if there is not enough money
             if (!_moneyModule.FinalizePurchase(slot.Product))
             {
-                GUI.ShowSelectionMessage($"Not enough money available! {slot.Product.Name} costs {slot.Product.Price}kr.");
+                _gui.ShowSelectionMessage($"Not enough money available! {slot.Product.Name} costs {slot.Product.Price}kr.");
 
                 WaitForMenuChoice();
             }
 
             // There's enough products, and enough money. User can get the product
 
-            MachineContents.ReleaseProduct(UserSelection);
-             
+            _contents.ReleaseProduct(UserSelection);
+
             // Blocking animation
-            GUI.DeliverProduct(UserSelection);
+            _gui.DeliverProduct(UserSelection);
 
 
             WaitForMenuChoice();
         }
 
-
-        private static void AcceptingCoinsLogic()
+        public MachineProductSlot GetProductSlot(string code)
         {
-            GUI.DrawCoinSelectionMenu();
+            return _contents.GetProductSlot(code);            
+        }
+
+
+        private void AcceptingCoinsLogic()
+        {
+            _gui.DrawCoinSelectionMenu();
 
             // Mainly gonna switch manually between states, but just in case 
             // we fail to exit the while loop for some reason

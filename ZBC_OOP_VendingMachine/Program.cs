@@ -6,7 +6,13 @@ namespace ZBC_OOP_VendingMachine
     {
         static void Main(string[] args)
         {
-            MachineLogic.InitializeVendingMachine();
+            GUI gui = new GUI();
+            MachineLogic logic = new MachineLogic();
+            MachineContents contents = new MachineContents();
+            MoneyModule money = new MoneyModule();
+
+            logic.InitializeVendingMachine(contents, gui, money);
+
 
             Console.ReadKey();
         }
