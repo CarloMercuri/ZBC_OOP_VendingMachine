@@ -6,11 +6,7 @@ namespace ZBC_OOP_VendingMachine
     {
         static void Main(string[] args)
         {
-            MachineLogic.MachineMaxSlotContent = 7;
-            MachineContents.InitializeMachineContents();
-
-            GUI.InitializeGUI(160, 40);
-            MachineLogic.StartMainLogicLoop();
+            MachineLogic.InitializeVendingMachine();
 
             Console.ReadKey();
         }

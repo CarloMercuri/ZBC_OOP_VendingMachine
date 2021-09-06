@@ -41,7 +41,7 @@ namespace ZBC_OOP_VendingMachine
         private static string[] bigBottleAscii;
         private static Dictionary<CoinType, string[]> coinsAsciiDictionary;
 
-        public static void InitializeGUI(int windowWidth, int windowHeight)
+        public static void InitializeGUI(int windowWidth, int windowHeight, MoneyModule _moneyModule)
         {
             // Size and lock the console.
             Console.SetWindowSize(windowWidth, windowHeight);
@@ -57,7 +57,7 @@ namespace ZBC_OOP_VendingMachine
 
             ConsoleTools.SetWarningOptions(60, 2, 60);
 
-            MoneyModule.AvailableMoneyUpdate += UpdateDisplayMoney;
+            _moneyModule.AvailableMoneyUpdate += UpdateDisplayMoney;
             Console.CursorVisible = false;
 
             ClearMainDisplayArea();
@@ -106,7 +106,6 @@ namespace ZBC_OOP_VendingMachine
             userSelection.X = Left;
             userSelection.Y = Top;
             Console.SetCursorPosition(Left, Top);
-           
         }
 
         /// <summary>
@@ -180,14 +179,51 @@ namespace ZBC_OOP_VendingMachine
 
         }
 
+        public static MachineStatus GetMenuChoice()
+        {
+            while (true)
+            {
+                char key = ConsoleTools.GetValidKeyInput().KeyChar;
+
+                // Always check upper case
+                key = char.ToUpper(key);
+
+                // First we check the menu items, which always have top priority
+                switch (key)
+                {
+                    case 'S': // Switch to Make Selection
+                        ClearBottomArea();
+                        return MachineStatus.AcceptingSelection;
+
+                    case 'I': // Switch to Insert Coins
+                        ClearBottomArea();
+                        return MachineStatus.AcceptingCoins;
+
+                    case 'R': // Switch to Admin mode
+                        ClearBottomArea();
+                        return MachineStatus.ReleasingMoney;
+                }
+            }
+        }
+
+        private static void ClearBottomArea()
+        {
+            for (int i = 32; i < Console.WindowHeight - 1; i++)
+            {
+                Console.SetCursorPosition(0, i);
+                Console.Write(new string(' ', Console.WindowWidth - 1));
+            }
+
+        }
+
         /// <summary>
         /// Updates the display showing how much money is currently aviable for use
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private static void UpdateDisplayMoney(object sender, EventArgs e)
+        private static void UpdateDisplayMoney(object sender, AvailableMoneyUpdateEventArgs args)
         {
-            int money = MoneyModule.AvailableMoney;
+            int money = args.CurrentMoney;
 
             // Clear the display
             Console.SetCursorPosition(45, 14);

@@ -8,6 +8,8 @@ namespace ZBC_OOP_VendingMachine
 {
     public static class MachineLogic
     {
+        private static MoneyModule _moneyModule;
+
         private static MachineStatus Status;
 
         private static int machineMaxSlotContent;
@@ -26,7 +28,17 @@ namespace ZBC_OOP_VendingMachine
             set { UpdateUserSelection(value); }
         }
 
-        //private static string userSelection;
+
+        public static void InitializeVendingMachine()
+        {
+            _moneyModule = new MoneyModule();
+            MachineMaxSlotContent = 7;
+            MachineContents.InitializeMachineContents();
+            GUI.InitializeGUI(160, 40, _moneyModule);
+            Status = MachineStatus.AcceptingCoins;
+            MainLogicLoop();
+ 
+        }
 
         private static void UpdateUserSelection(string value)
         {
@@ -39,10 +51,8 @@ namespace ZBC_OOP_VendingMachine
 
         }
 
-        public static void StartMainLogicLoop()
+        public static void MainLogicLoop()
         {
-            Status = MachineStatus.AcceptingCoins;
-
             // MAIN LOOP
             while (true)
             {
@@ -74,7 +84,6 @@ namespace ZBC_OOP_VendingMachine
         {
             MachineProductSlot slot = MachineContents.GetProductSlot(UserSelection);
 
-
             if(slot.AmountAvailable <= 0)
             {
                 GUI.DisplaySelectionResults(false);
@@ -83,43 +92,28 @@ namespace ZBC_OOP_VendingMachine
             {
                 GUI.DisplaySelectionResults(true);
             }
-
-
         }
 
         private static void WaitForMenuChoice()
         {
-            while (true)
-            {
-                char key = ConsoleTools.GetValidKeyInput().KeyChar;
+            SetStatus(GUI.GetMenuChoice());
+            MainLogicLoop();
+        }
 
-                // Always check upper case
-                key = char.ToUpper(key);
-
-                // First we check the menu items, which always have top priority
-                switch (key)
-                {
-                    case 'S': // Switch to Make Selection
-                              // dont do anything
-                        return; // Back to the main loop
-
-                    case 'I': // Switch to Insert Coins
-                        Status = MachineStatus.AcceptingCoins;
-                        return;
-
-                    case 'R': // Switch to Admin mode
-                        Status = MachineStatus.ReleasingMoney;
-                        return;
-                }
-            }
+        public static void SetStatus(MachineStatus _status)
+        {
+            Status = _status;
         }
 
         private static void ReleasingMoneyLogic()
         {
-            // It's a animation blocking method, so when it's done we can change back to default
-            GUI.MoneyReleased(MoneyModule.ReleaseCurrentMoney());
+            if(_moneyModule.AvailableMoney > 0)
+            {
+                // It's a animation blocking method, so when it's done we can change back to default
+                GUI.MoneyReleased(_moneyModule.ReleaseCurrentMoney());
 
-            WaitForMenuChoice();
+                WaitForMenuChoice();
+            }
         }
 
         private static void AcceptingSelectionLogic()
@@ -201,7 +195,7 @@ namespace ZBC_OOP_VendingMachine
             } // end of if < 0
 
             // Returns false if there is not enough money
-            if (!MoneyModule.FinalizePurchase(slot.Product))
+            if (!_moneyModule.FinalizePurchase(slot.Product))
             {
                 GUI.ShowSelectionMessage($"Not enough money available! {slot.Product.Name} costs {slot.Product.Price}kr.");
 
@@ -233,23 +227,23 @@ namespace ZBC_OOP_VendingMachine
                 switch (key)
                 {
                     case ConsoleKey.D1:
-                        MoneyModule.InsertCoin(CoinType.One);
+                        _moneyModule.InsertCoin(CoinType.One);
                         break;
 
                     case ConsoleKey.D2:
-                        MoneyModule.InsertCoin(CoinType.Two);
+                        _moneyModule.InsertCoin(CoinType.Two);
                         break;
 
                     case ConsoleKey.D3:
-                        MoneyModule.InsertCoin(CoinType.Five);
+                        _moneyModule.InsertCoin(CoinType.Five);
                         break;
 
                     case ConsoleKey.D4:
-                        MoneyModule.InsertCoin(CoinType.Ten);
+                        _moneyModule.InsertCoin(CoinType.Ten);
                         break;
 
                     case ConsoleKey.D5:
-                        MoneyModule.InsertCoin(CoinType.Twenty);
+                        _moneyModule.InsertCoin(CoinType.Twenty);
                         break;
 
                     case ConsoleKey.S: // Switch to Make Selection

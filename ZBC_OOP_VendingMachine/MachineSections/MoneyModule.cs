@@ -6,16 +6,16 @@ using System.Threading.Tasks;
 
 namespace ZBC_OOP_VendingMachine
 {
-    public static class MoneyModule
+    public class MoneyModule
     {
-        public static event EventHandler<EventArgs> AvailableMoneyUpdate;
+        public event EventHandler<AvailableMoneyUpdateEventArgs> AvailableMoneyUpdate;
 
-        private static int availableMoney;
+        private int availableMoney;
 
         /// <summary>
         /// The currently available money for use on the machine
         /// </summary>
-        public static int AvailableMoney
+        public int AvailableMoney
         {
             get { return availableMoney; }
         }
@@ -24,19 +24,21 @@ namespace ZBC_OOP_VendingMachine
         /// Changes the amount of available money to the specified amount
         /// </summary>
         /// <param name="amount"></param>
-        private static void SetAvailableMoney(int amount)
+        private void SetAvailableMoney(int amount)
         {
             availableMoney = amount;
 
             // Call the event
-            AvailableMoneyUpdate?.Invoke(null, null);
+            AvailableMoneyUpdateEventArgs args = new AvailableMoneyUpdateEventArgs(availableMoney);
+
+            AvailableMoneyUpdate?.Invoke(null, args);
         }
 
         /// <summary>
         /// Processes a coin insertion
         /// </summary>
         /// <param name="type"></param>
-        public static void InsertCoin(CoinType type)
+        public void InsertCoin(CoinType type)
         {
             // Just to make sure
             if(Enum.IsDefined(typeof(CoinType), type))
@@ -50,7 +52,7 @@ namespace ZBC_OOP_VendingMachine
         /// Releases the currently available money
         /// </summary>
         /// <returns></returns>
-        public static List<CoinType> ReleaseCurrentMoney()
+        public List<CoinType> ReleaseCurrentMoney()
         {
             List<CoinType> change = MoneyToCoins(availableMoney);
 
@@ -59,11 +61,12 @@ namespace ZBC_OOP_VendingMachine
             return change;
         }
 
-        public static bool FinalizePurchase(IMachineProduct product)
+        public bool FinalizePurchase(IMachineProduct product)
         {
             if(product.Price <= availableMoney)
+
             {
-                availableMoney -= product.Price;
+                SetAvailableMoney(availableMoney-= product.Price);
                 return true;
             }
             else
@@ -77,7 +80,7 @@ namespace ZBC_OOP_VendingMachine
         /// </summary>
         /// <param name="amount"></param>
         /// <returns></returns>
-        private static List<CoinType> MoneyToCoins(decimal amount)
+        private List<CoinType> MoneyToCoins(decimal amount)
         {
             List<CoinType> returnList = new List<CoinType>();
 
