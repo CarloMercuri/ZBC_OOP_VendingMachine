@@ -35,7 +35,7 @@ namespace ZBC_OOP_VendingMachine
 
         // Visual variables
         private Rectangle MainDisplayAreaRect;
-        private (int X, int Y) userSelection;
+        private (int X, int Y) userSelectionLocation;
 
         // Asciis
         private string[] machineAscii;
@@ -46,6 +46,8 @@ namespace ZBC_OOP_VendingMachine
         private string[] bigBottleAscii;
         private Dictionary<CoinType, string[]> coinsAsciiDictionary;
 
+        // Logic
+        private string userSelection;
 
         public void InitializeGUI(int windowWidth, int windowHeight, MachineLogic logic, MoneyModule moneyModule)
         {
@@ -58,6 +60,7 @@ namespace ZBC_OOP_VendingMachine
 
             DrawMachine();
             
+            // This is always gonna be there
             ConsoleTools.PrintLine("S = Make a Selection, I = Insert Coins, R = Release money", 57, 2, ConsoleColor.White);
 
             MainDisplayAreaRect = new Rectangle(57, 3, Console.WindowWidth - 57, 30);
@@ -68,32 +71,253 @@ namespace ZBC_OOP_VendingMachine
             Console.CursorVisible = false;
 
             ClearMainDisplayArea();
+            MainLogicLoop();
                     
         }
 
+        /// <summary>
+        /// Main loop. Redirects the logic to the right method based on the machine status
+        /// </summary>
+        public void MainLogicLoop()
+        {
+            // MAIN LOOP
+            while (true)
+            {
+                switch (_logic.MachineStatus)
+                {
+                    case MachineStatus.AcceptingCoins:
+                        AcceptingCoinsLogic();
+                        break;
+
+                    case MachineStatus.AcceptingSelection:
+                        AcceptingSelectionLogic();
+                        break;
+
+                    case MachineStatus.ReleasingMoney:
+                        ReleasingMoneyLogic();
+                        break;
+
+                    case MachineStatus.AdminMode:
+                        break;
+                }
+            } // end main loop
+        }
+
+        /// <summary>
+        /// Gets a selection from the user
+        /// </summary>
+        private void AcceptingSelectionLogic()
+        {
+            // Draw main menu
+            DrawMakeSelectionMenu();
+
+            // Initialiazation
+            bool isSelectionValid = false;
+            userSelection = "";
+
+            // STEP ONE: Get a valid (a-b-c-d, 1 to 9) selection
+            // Nothing to do with how many products are left and so on.
+
+            while (!isSelectionValid)
+            {
+                // Get a key input
+                char key = ConsoleTools.GetValidKeyInput().KeyChar;
+
+                // Always check upper case
+                key = char.ToUpper(key);
+
+                // First we check the menu items, which always have top priority
+                switch (key)
+                {
+                    case 'S': // Switch to Make Selection
+                        // dont do anything
+                        return; // Back to the main loop
+
+                    case 'I': // Switch to Insert Coins
+                        _logic.MachineStatus = MachineStatus.AcceptingCoins;
+                        return;
+
+                    case 'R': // Switch to Admin mode
+                        _logic.MachineStatus = MachineStatus.ReleasingMoney;
+                        return;
+                }
+
+                
+                if (userSelection.Length == 0) // This means we're inputting a letter
+                {
+                    // If it's A, B, C or D
+                    if (key >= 65 && key <= 68)
+                    {
+                        // If it's the first part of the selection, and it's a valid letter,
+                        // then add it to the selection
+                        userSelection += key;
+                        SelectionUpdated();
+                    }
+
+                    // Continue regardless
+                    continue;
+                }
+                else // In this case we're inputting a number
+                {
+                    if (char.IsDigit(key))
+                    {
+                        if (key >= 49 && key <= 54) // >= 1 && <= 6
+                        {
+                            // The selection is now valid
+                            userSelection += key;
+                            SelectionUpdated();
+                            isSelectionValid = true;
+                            break;
+                        }
+                    }
+
+                    // If it's not a digit, or it's not a valid digit, back to input
+                    continue;
+                }
+            } // end of while loop
+
+            // The selection is now valid
+
+            MachineProductSlot slot = _logic.GetProductSlot(userSelection);
+
+            // Check if there's enough
+            if (!_logic.IsThereEnoughProduct(userSelection))
+            {
+                ShowSelectionMessage($"Product '{slot.Product.Name}' in slot {userSelection} is not available.");
+
+                // If not, wait for menu selection and go back
+                WaitForMenuChoice();
+            }
+
+
+            // Returns false if there is not enough money
+            if (!_logic.AttemptFinalizePurchase(userSelection))
+            {
+                ShowSelectionMessage($"Not enough money available! {slot.Product.Name} costs {slot.Product.Price}kr.");
+
+                WaitForMenuChoice();
+            } else
+            {
+                // There's enough products, and enough money. User can get the product
+                // Blocking animation
+                DeliverProduct(userSelection);
+            }
+
+            WaitForMenuChoice();
+        }
+
+        /// <summary>
+        /// Handles insertion of coins
+        /// </summary>
+        private void AcceptingCoinsLogic()
+        {
+            // Draw main menu
+            DrawCoinSelectionMenu();
+
+            // Mainly gonna switch manually between states, but just in case 
+            // we fail to exit the while loop for some reason
+            while (_logic.MachineStatus == MachineStatus.AcceptingCoins)
+            {
+
+                ConsoleKey key = ConsoleTools.GetValidKeyInput().Key;
+
+                switch (key)
+                {
+                    case ConsoleKey.D1:
+                        _logic.CoinInserted(CoinType.One);
+                        break;
+
+                    case ConsoleKey.D2:
+                        _logic.CoinInserted(CoinType.Two);
+                        break;
+
+                    case ConsoleKey.D3:
+                        _logic.CoinInserted(CoinType.Five);
+                        break;
+
+                    case ConsoleKey.D4:
+                        _logic.CoinInserted(CoinType.Ten);
+                        break;
+
+                    case ConsoleKey.D5:
+                        _logic.CoinInserted(CoinType.Twenty);
+                        break;
+
+                    case ConsoleKey.S: // Switch to Make Selection
+                        _logic.MachineStatus = MachineStatus.AcceptingSelection;
+                        return; // Back to the main loop
+
+                    case ConsoleKey.I: // Switch to Insert Coins
+                        // Don't do anything
+                        break;
+
+                    case ConsoleKey.R: // Switch to Admin mode
+                        _logic.MachineStatus = MachineStatus.ReleasingMoney;
+                        return;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Logic for releasing coins
+        /// </summary>
+        private void ReleasingMoneyLogic()
+        {
+            List<CoinType> change = _logic.CoinsReleaseRequest();
+
+            if (change.Count > 0)
+            {
+                // It's a animation blocking method, so when it's done we can change back to default
+                MoneyReleased(change);
+
+                WaitForMenuChoice();
+            }
+        }
+
+        /// <summary>
+        /// Waits until you get a valid menu choice, then starts the main loop
+        /// </summary>
+        private void WaitForMenuChoice()
+        {
+            _logic.SetStatus(GetMenuChoice());
+            MainLogicLoop();
+        }
+
+        /// <summary>
+        /// Draws the main machine
+        /// </summary>
         private void DrawMachine()
         {
             ConsoleTools.PrintArray(machineAscii, 2, 2, null, ConsoleColor.White);
         }
 
+        /// <summary>
+        /// Clears the user selection visual
+        /// </summary>
         private void ClearUserSelection()
         {
-            Console.SetCursorPosition(userSelection.X, userSelection.Y);
+            Console.SetCursorPosition(userSelectionLocation.X, userSelectionLocation.Y);
 
             // That should automatically clear unwanted stuff
             Console.Write("   ");
         }
 
-        public void SelectionUpdated(string selection)
+        /// <summary>
+        /// Updates the visual user selection
+        /// </summary>
+        public void SelectionUpdated()
         {
             ClearUserSelection();
 
-            Console.SetCursorPosition(userSelection.X, userSelection.Y);
+            Console.SetCursorPosition(userSelectionLocation.X, userSelectionLocation.Y);
 
             // That should automatically clear unwanted stuff
-            Console.Write(selection);
+            Console.Write(userSelection);
         }
 
+        /// <summary>
+        /// Draws the "make a selection" menu
+        /// </summary>
         public void DrawMakeSelectionMenu()
         {
             ClearMainDisplayArea();
@@ -110,8 +334,8 @@ namespace ZBC_OOP_VendingMachine
             ConsoleTools.PrintArray(productDisplayRightAscii, MainDisplayAreaRect.Left + 45, yStart, null, ConsoleColor.White);
 
             // Place the cursor back to the stored position
-            userSelection.X = Left;
-            userSelection.Y = Top;
+            userSelectionLocation.X = Left;
+            userSelectionLocation.Y = Top;
             Console.SetCursorPosition(Left, Top);
         }
 
@@ -129,6 +353,9 @@ namespace ZBC_OOP_VendingMachine
             }
         }
 
+        /// <summary>
+        /// Draws the coin insertion menu
+        /// </summary>
         public void DrawCoinSelectionMenu()
         {
             ClearMainDisplayArea();
@@ -142,6 +369,10 @@ namespace ZBC_OOP_VendingMachine
             ConsoleTools.PrintArray(coinSelectionAscii, 57, 6, null, ConsoleColor.White);
         }
 
+        /// <summary>
+        /// UI for releasing coins
+        /// </summary>
+        /// <param name="changeList"></param>
         public void MoneyReleased(List<CoinType> changeList)
         {
 
@@ -186,6 +417,10 @@ namespace ZBC_OOP_VendingMachine
 
         }
 
+        /// <summary>
+        /// Forces to get a valid menu choice
+        /// </summary>
+        /// <returns></returns>
         public MachineStatus GetMenuChoice()
         {
             while (true)
@@ -213,6 +448,9 @@ namespace ZBC_OOP_VendingMachine
             }
         }
 
+        /// <summary>
+        /// Clears the bottom area
+        /// </summary>
         private void ClearBottomArea()
         {
             for (int i = 32; i < Console.WindowHeight - 1; i++)
@@ -241,11 +479,9 @@ namespace ZBC_OOP_VendingMachine
             Console.Write($"{money}kr");
         }
 
-        public void DisplaySelectionResults(bool success)
-        {
-
-        }
-
+        /// <summary>
+        /// Initializes the asciis
+        /// </summary>
         private void InitializeAsciis()
         {
             machineAscii = new string[]
@@ -431,11 +667,10 @@ namespace ZBC_OOP_VendingMachine
 
         }
 
-        private void ReDrawBottle(string slotName)
-        {
-
-        }
-
+        /// <summary>
+        /// Draws the coins at the bottom of the screen
+        /// </summary>
+        /// <param name="changeList"></param>
         public void DrawChangeReceived(List<CoinType> changeList)
         {
             int twentys = changeList.Where(x => x == CoinType.Twenty).Count();
@@ -484,6 +719,10 @@ namespace ZBC_OOP_VendingMachine
 
         }
 
+        /// <summary>
+        /// Delivers the product (blocking animation)
+        /// </summary>
+        /// <param name="slotName"></param>
         public void DeliverProduct(string slotName)
         {
             // Capital A is 65, capital D is 68. This way we get a number 
@@ -600,8 +839,6 @@ namespace ZBC_OOP_VendingMachine
 
             // TO-DO: Better message
             Console.Write("Press S to make a new selection, or make another menu choice");
-
-
         }
 
         /// <summary>

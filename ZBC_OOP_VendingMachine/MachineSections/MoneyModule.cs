@@ -61,10 +61,14 @@ namespace ZBC_OOP_VendingMachine
             return change;
         }
 
+        /// <summary>
+        /// Validates a purchase
+        /// </summary>
+        /// <param name="product"></param>
+        /// <returns></returns>
         public bool FinalizePurchase(IMachineProduct product)
         {
             if(product.Price <= availableMoney)
-
             {
                 SetAvailableMoney(availableMoney-= product.Price);
                 return true;

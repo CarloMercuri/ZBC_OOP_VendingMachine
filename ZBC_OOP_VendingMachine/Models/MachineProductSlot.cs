@@ -30,6 +30,10 @@ namespace ZBC_OOP_VendingMachine
             amountAvailable = quantity;                
         }
 
+        /// <summary>
+        /// Formats a string to rapresent the product contained in this slot
+        /// </summary>
+        /// <returns></returns>
         public string PrintToSelection()
         {
             if(product == null)
