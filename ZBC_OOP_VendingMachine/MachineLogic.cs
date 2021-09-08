@@ -79,6 +79,11 @@ namespace ZBC_OOP_VendingMachine
 
         }
 
+        public int GetMoneyAvailable()
+        {
+            return _moneyModule.AvailableMoney;
+        }
+
         /// <summary>
         /// Validates a request to release coins
         /// </summary>

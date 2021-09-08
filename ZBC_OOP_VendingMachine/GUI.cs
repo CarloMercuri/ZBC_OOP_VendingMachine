@@ -37,6 +37,12 @@ namespace ZBC_OOP_VendingMachine
         private Rectangle MainDisplayAreaRect;
         private (int X, int Y) userSelectionLocation;
 
+        // Warnings
+        private int warningX = 0;
+        private int warningY = 0;
+        private int warningMaxLenght = 20;
+        private int warningLastLenght = 0;
+
         // Asciis
         private string[] machineAscii;
         private string[] coinSelectionAscii;
@@ -61,11 +67,11 @@ namespace ZBC_OOP_VendingMachine
             DrawMachine();
             
             // This is always gonna be there
-            ConsoleTools.PrintLine("S = Make a Selection, I = Insert Coins, R = Release money", 57, 2, ConsoleColor.White);
+            PrintLine("S = Make a Selection, I = Insert Coins, R = Release money", 57, 2, ConsoleColor.White);
 
             MainDisplayAreaRect = new Rectangle(57, 3, Console.WindowWidth - 57, 30);
 
-            ConsoleTools.SetWarningOptions(60, 2, 60);
+            SetWarningOptions(60, 2, 60);
 
             moneyModule.AvailableMoneyUpdate += UpdateDisplayMoney;
             Console.CursorVisible = false;
@@ -104,6 +110,17 @@ namespace ZBC_OOP_VendingMachine
         }
 
         /// <summary>
+        /// Clears the last warning
+        /// </summary>
+        public void ClearWarning()
+        {
+            Console.SetCursorPosition(warningX, warningY);
+            // Create an empty string of the lenght of the last warning
+            string clearString = new string(' ', warningLastLenght);
+            Console.Write(clearString);
+        }
+
+        /// <summary>
         /// Gets a selection from the user
         /// </summary>
         private void AcceptingSelectionLogic()
@@ -121,7 +138,7 @@ namespace ZBC_OOP_VendingMachine
             while (!isSelectionValid)
             {
                 // Get a key input
-                char key = ConsoleTools.GetValidKeyInput().KeyChar;
+                char key = GetValidKeyInput().KeyChar;
 
                 // Always check upper case
                 key = char.ToUpper(key);
@@ -219,7 +236,7 @@ namespace ZBC_OOP_VendingMachine
             while (_logic.MachineStatus == MachineStatus.AcceptingCoins)
             {
 
-                ConsoleKey key = ConsoleTools.GetValidKeyInput().Key;
+                ConsoleKey key = GetValidKeyInput().Key;
 
                 switch (key)
                 {
@@ -252,7 +269,10 @@ namespace ZBC_OOP_VendingMachine
                         break;
 
                     case ConsoleKey.R: // Switch to Admin mode
-                        _logic.MachineStatus = MachineStatus.ReleasingMoney;
+                        if (_logic.GetMoneyAvailable() > 0)
+                        {
+                            _logic.MachineStatus = MachineStatus.ReleasingMoney;
+                        }
                         return;
                 }
             }
@@ -263,6 +283,7 @@ namespace ZBC_OOP_VendingMachine
         /// </summary>
         private void ReleasingMoneyLogic()
         {
+            ClearMainDisplayArea();
             List<CoinType> change = _logic.CoinsReleaseRequest();
 
             if (change.Count > 0)
@@ -288,7 +309,7 @@ namespace ZBC_OOP_VendingMachine
         /// </summary>
         private void DrawMachine()
         {
-            ConsoleTools.PrintArray(machineAscii, 2, 2, null, ConsoleColor.White);
+            PrintArray(machineAscii, 2, 2, null, ConsoleColor.White);
         }
 
         /// <summary>
@@ -322,7 +343,7 @@ namespace ZBC_OOP_VendingMachine
         {
             ClearMainDisplayArea();
 
-            ConsoleTools.PrintLine("Write your selection: ", MainDisplayAreaRect.Left, 5, ConsoleColor.White);
+            PrintLine("Write your selection: ", MainDisplayAreaRect.Left, 5, ConsoleColor.White);
 
             // Store the cursor position at the end of the previous printline for later
             (int Left, int Top) = Console.GetCursorPosition();
@@ -330,8 +351,8 @@ namespace ZBC_OOP_VendingMachine
             int yStart = 8;
 
             // Draw the list
-            ConsoleTools.PrintArray(productDisplayLeftAscii, MainDisplayAreaRect.Left, yStart, null, ConsoleColor.White);
-            ConsoleTools.PrintArray(productDisplayRightAscii, MainDisplayAreaRect.Left + 45, yStart, null, ConsoleColor.White);
+            PrintArray(productDisplayLeftAscii, MainDisplayAreaRect.Left, yStart, null, ConsoleColor.White);
+            PrintArray(productDisplayRightAscii, MainDisplayAreaRect.Left + 45, yStart, null, ConsoleColor.White);
 
             // Place the cursor back to the stored position
             userSelectionLocation.X = Left;
@@ -366,7 +387,7 @@ namespace ZBC_OOP_VendingMachine
                 Console.Write(new string(' ', 25));
             }
 
-            ConsoleTools.PrintArray(coinSelectionAscii, 57, 6, null, ConsoleColor.White);
+            PrintArray(coinSelectionAscii, 57, 6, null, ConsoleColor.White);
         }
 
         /// <summary>
@@ -425,7 +446,7 @@ namespace ZBC_OOP_VendingMachine
         {
             while (true)
             {
-                char key = ConsoleTools.GetValidKeyInput().KeyChar;
+                char key = GetValidKeyInput().KeyChar;
 
                 // Always check upper case
                 key = char.ToUpper(key);
@@ -442,8 +463,12 @@ namespace ZBC_OOP_VendingMachine
                         return MachineStatus.AcceptingCoins;
 
                     case 'R': // Switch to Admin mode
-                        ClearBottomArea();
-                        return MachineStatus.ReleasingMoney;
+                        if (_logic.GetMoneyAvailable() > 0)
+                        {
+                            ClearBottomArea();
+                            return MachineStatus.ReleasingMoney;
+                        }
+                        break;
                 }
             }
         }
@@ -683,40 +708,101 @@ namespace ZBC_OOP_VendingMachine
 
             int yStart = 32;
 
-            for (int i = 0; i < twentys; i++)
+            if(twentys > 0)
             {
-                ConsoleTools.PrintArray(coinsAsciiDictionary[CoinType.Twenty], xStart, yStart, null, ConsoleColor.DarkYellow);
-
-                // next after a twenty is separated by 16 spaces
-                // The beauty of this is it will not happen if there are
-                // not twentys, so it will always start in the correct place no matter what
-                xStart += 16;
+                Console.SetCursorPosition(xStart, yStart + 5);
+                Console.Write($"{twentys}x");
+                PrintArray(coinsAsciiDictionary[CoinType.Twenty], xStart + 4, yStart, null, ConsoleColor.DarkYellow);
+                xStart += 20;
             }
 
-            for (int i = 0; i < tens; i++)
+            if(tens > 0)
             {
-                ConsoleTools.PrintArray(coinsAsciiDictionary[CoinType.Ten], xStart, yStart + 2, null, ConsoleColor.DarkYellow);
-                xStart += 10;
+                Console.SetCursorPosition(xStart, yStart + 4);
+                Console.Write($"{tens}x");
+                PrintArray(coinsAsciiDictionary[CoinType.Ten], xStart + 4, yStart + 2, null, ConsoleColor.DarkYellow);
+                xStart += 20;
             }
 
-            for (int i = 0; i < fives; i++)
+            if(fives > 0)
             {
-                ConsoleTools.PrintArray(coinsAsciiDictionary[CoinType.Five], xStart, yStart + 1, null, ConsoleColor.Gray);
-                xStart += 13;
+                Console.SetCursorPosition(xStart, yStart + 4);
+                Console.Write($"{fives}x");
+                PrintArray(coinsAsciiDictionary[CoinType.Five], xStart + 4, yStart + 1, null, ConsoleColor.Gray);
+                xStart += 20;
             }
 
-            for (int i = 0; i < twos; i++)
+            if(twos > 0)
             {
-                ConsoleTools.PrintArray(coinsAsciiDictionary[CoinType.Two], xStart, yStart + 2, null, ConsoleColor.Gray);
-                xStart += 13;
+                Console.SetCursorPosition(xStart, yStart + 4);
+                Console.Write($"{twos}x");
+                PrintArray(coinsAsciiDictionary[CoinType.Two], xStart + 4, yStart + 2, null, ConsoleColor.Gray);
+                xStart += 15;
             }
 
-            for (int i = 0; i < ones; i++)
+            if(ones > 0)
             {
-                ConsoleTools.PrintArray(coinsAsciiDictionary[CoinType.One], xStart, yStart + 3, null, ConsoleColor.Gray);
-                xStart += 10;
+                Console.SetCursorPosition(xStart, yStart + 4);
+                Console.Write($"{ones}x");
+                PrintArray(coinsAsciiDictionary[CoinType.One], xStart + 4, yStart + 3, null, ConsoleColor.Gray);
+                xStart += 15;
             }
 
+        }
+
+        /// <summary>
+        /// Returns a key stroke that is limited to a-z, 0-9
+        /// </summary>
+        /// <returns></returns>
+        public ConsoleKeyInfo GetValidKeyInput(bool hideInput = true)
+        {
+            while (true)
+            {
+                ConsoleKeyInfo key = Console.ReadKey(hideInput);
+
+                if (char.IsLetter(key.KeyChar) || char.IsDigit(key.KeyChar))
+                {
+                    return key;
+                }
+                else
+                {
+                    continue;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Asks the user to choose between two keys, and keeps asking until the input is valid
+        /// </summary>
+        /// <param name="k1"></param>
+        /// <param name="k2"></param>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        public ConsoleKey GetUserChoice(ConsoleKey k1, ConsoleKey k2, bool displayError, string message = "")
+        {
+            while (true)
+            {
+                if (message != "")
+                {
+                    Console.WriteLine(message);
+                }
+
+
+                ConsoleKeyInfo key = Console.ReadKey(true);
+
+                if (key.Key == k1 || key.Key == k2)
+                {
+                    return key.Key;
+                }
+                else
+                {
+                    if (displayError)
+                    {
+                        Console.WriteLine();
+                        Console.WriteLine("Invalid choice.");
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -774,7 +860,7 @@ namespace ZBC_OOP_VendingMachine
             Thread.Sleep(500);
 
             // Redraw the bottle
-            ConsoleTools.PrintArray(bottleAscii, xPos, yPos, null, ConsoleColor.White);
+            PrintArray(bottleAscii, xPos, yPos, null, ConsoleColor.White);
 
             // clear PUSH
             Console.SetCursorPosition(6, 26);
@@ -820,7 +906,7 @@ namespace ZBC_OOP_VendingMachine
             // Print big bottle
 
             string productName = _logic.GetProductSlot(slotName).Product.Name;
-            ConsoleTools.PrintArray(bigBottleAscii, MainDisplayAreaRect.X + 4, MainDisplayAreaRect.Y + 10, null, ConsoleColor.White);
+            PrintArray(bigBottleAscii, MainDisplayAreaRect.X + 4, MainDisplayAreaRect.Y + 10, null, ConsoleColor.White);
 
             // Add the product name
             Console.SetCursorPosition(MainDisplayAreaRect.X + 17, MainDisplayAreaRect.Y + 18);
@@ -854,6 +940,261 @@ namespace ZBC_OOP_VendingMachine
                 DeleteMenu(sysMenu, SC_MAXIMIZE, MF_BYCOMMAND);
                 DeleteMenu(sysMenu, SC_SIZE, MF_BYCOMMAND);
             }
+        }
+
+        public void ShowWarning(string warning, ConsoleColor color)
+        {
+            ClearWarning();
+            Console.SetCursorPosition(warningX, warningY);
+
+            // Enforce max lenght
+            if (warning.Length > warningMaxLenght)
+            {
+                warning = warning.Substring(0, warningMaxLenght);
+            }
+            Console.ForegroundColor = color;
+            Console.Write(warning);
+            Console.ForegroundColor = ConsoleColor.White;
+        }
+
+        /// <summary>
+        /// Sets the warning location and lenght
+        /// </summary>
+        /// <param name="location_x"></param>
+        /// <param name="location_y"></param>
+        /// <param name="maxLenght"></param>
+        public void SetWarningOptions(int location_x, int location_y, int maxLenght)
+        {
+            warningX = location_x;
+            warningY = location_y;
+            warningMaxLenght = maxLenght;
+        }
+
+        /// <summary>
+        /// Asks the user to input a double, and keeps asking until the input is valid
+        /// </summary>
+        /// <param name="phrase"></param>
+        /// <param name="maxDecimals"></param>
+        /// <returns></returns>
+        public double GetUserInputDouble(string phrase, int maxDecimals = -1)
+        {
+            string userInput = "";
+
+            while (true)
+            {
+                Console.WriteLine(phrase);
+
+
+                userInput = Console.ReadLine();
+
+                // Empty input (only pressed enter for example)
+                if (userInput.Length <= 0)
+                {
+                    Console.WriteLine("Invalid input");
+                    continue;
+                }
+
+                // Check that it only contains numbers
+                if (!IsInputDouble(userInput))
+                {
+                    Console.WriteLine("Invalid input: can only contain numbers and one comma or dot");
+                    continue;
+                }
+                else
+                {
+                    break;
+                }
+
+                // If asked to, removes excess decimals
+                if (maxDecimals != -1)
+                {
+                    // Count the numbers after the comma.
+                    int dIndex = userInput.IndexOf(',');
+
+                    if (dIndex >= 0)
+                    {
+                        // Limit to a few decimals, first of all its pointless, second also avoid
+                        // too big numbers and consequent errors
+                        if (userInput.Length - dIndex - 1 > 5)
+                        {
+                            // Just fix it instead of giving error
+                            userInput = userInput.Remove(dIndex + 6);
+                        }
+                    }
+                }
+
+
+            }
+
+            return double.Parse(userInput);
+        }
+
+        /// <summary>
+        /// Prints a single line to the specified location, with the specified color
+        /// </summary>
+        /// <param name="line"></param>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <param name="color"></param>
+        public void PrintLine(string line, int x, int y, ConsoleColor color)
+        {
+            if (color == ConsoleColor.Black)
+            {
+                color = ConsoleColor.White;
+            }
+
+            Console.ForegroundColor = color;
+
+            Console.SetCursorPosition(x, y);
+
+            Console.Write(line);
+        }
+
+
+        /// <summary>
+        /// Prints the given string array to the console in the specified location, skipping over eventual blacklisted characters. Blacklist can be null.
+        /// </summary>
+        /// <param name="array"></param>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <param name="blacklist"></param>
+        public void PrintArray(string[] array, int x, int y, List<char> blacklist, ConsoleColor color)
+        {
+            Console.ForegroundColor = color;
+
+            if (color == ConsoleColor.Black)
+            {
+                Console.ForegroundColor = ConsoleColor.White;
+            }
+
+            for (int i = 0; i < array.Length; i++)
+            {
+                Console.SetCursorPosition(x, y + i);
+
+                for (int j = 0; j < array[i].Length; j++)
+                {
+                    if (blacklist != null && blacklist.Contains(array[i][j]))
+                    {
+                        // If we need to skip this, we'll increment the cursor position manually by 1
+                        var pos = Console.GetCursorPosition();
+
+                        Console.SetCursorPosition(pos.Left + 1, pos.Top);
+                    }
+                    else
+                    {
+                        Console.Write(array[i][j]);
+                    }
+                }
+            }
+
+            Console.ForegroundColor = ConsoleColor.Gray;
+
+        }
+
+
+
+        /// <summary>
+        /// Checks that the input conforms to a Double
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        private bool IsInputDouble(string input)
+        {
+            input = input.Replace('.', ',');
+
+            foreach (char c in input)
+            {
+                // Also accept commas
+                if (c == ',')
+                {
+                    continue;
+                }
+
+                // check that it's a number (unicode)
+                if (c < '0' || c > '9')
+                    return false;
+            }
+
+            return true;
+        }
+
+
+        /// <summary>
+        /// Requests the user to enter an integer with the corresponding request string, and
+        /// makes sure the input is sanitized
+        /// </summary>
+        /// <param name="phrase"></param>
+        /// <returns></returns>
+        public int GetUserInputInteger(bool hideCursor = false, bool printError = false, string phrase = "")
+        {
+            string userInput = "";
+
+            while (true)
+            {
+                if (phrase != "")
+                {
+                    Console.WriteLine(phrase);
+                }
+
+                // If we're hiding the cursor, use another method of collecting the input
+                if (hideCursor)
+                {
+                    while (true)
+                    {
+                        var key = Console.ReadKey(true);
+
+                        if (key.Key == ConsoleKey.Enter)
+                        {
+                            break;
+                        }
+                        userInput += key.KeyChar;
+                    }
+                }
+                else
+                {
+                    userInput = Console.ReadLine();
+                }
+
+                // Empty input (only pressed enter for example)
+                if (userInput.Length <= 0)
+                {
+                    if (printError) Console.WriteLine("Invalid input");
+                    continue;
+                }
+
+                // Check that it only contains numbers
+                if (!IsInputOnlyDigits(userInput))
+                {
+                    if (printError) Console.WriteLine("Invalid input: must only contain numbers");
+                    continue;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            return int.Parse(userInput);
+        }
+
+
+
+
+        /// <summary>
+        /// Returns true if the string only contains digits
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public bool IsInputOnlyDigits(string input)
+        {
+            foreach (char c in input)
+            {
+                // check that it's a number (unicode)
+                if (c < '0' || c > '9')
+                    return false;
+            }
+
+            return true;
         }
 
     }
