@@ -9,6 +9,7 @@ namespace ZBC_OOP_VendingMachine
     public class MachineLogic
     {
         private MoneyModule _moneyModule;
+        private MachineContents _contents;
 
         private MachineStatus machineStatus;
 
@@ -35,7 +36,7 @@ namespace ZBC_OOP_VendingMachine
 
 
 
-        private MachineContents _contents;
+        
         private GUI _gui;
 
         /// <summary>

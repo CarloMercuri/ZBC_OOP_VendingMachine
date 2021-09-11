@@ -970,64 +970,7 @@ namespace ZBC_OOP_VendingMachine
             warningMaxLenght = maxLenght;
         }
 
-        /// <summary>
-        /// Asks the user to input a double, and keeps asking until the input is valid
-        /// </summary>
-        /// <param name="phrase"></param>
-        /// <param name="maxDecimals"></param>
-        /// <returns></returns>
-        public double GetUserInputDouble(string phrase, int maxDecimals = -1)
-        {
-            string userInput = "";
-
-            while (true)
-            {
-                Console.WriteLine(phrase);
-
-
-                userInput = Console.ReadLine();
-
-                // Empty input (only pressed enter for example)
-                if (userInput.Length <= 0)
-                {
-                    Console.WriteLine("Invalid input");
-                    continue;
-                }
-
-                // Check that it only contains numbers
-                if (!IsInputDouble(userInput))
-                {
-                    Console.WriteLine("Invalid input: can only contain numbers and one comma or dot");
-                    continue;
-                }
-                else
-                {
-                    break;
-                }
-
-                // If asked to, removes excess decimals
-                if (maxDecimals != -1)
-                {
-                    // Count the numbers after the comma.
-                    int dIndex = userInput.IndexOf(',');
-
-                    if (dIndex >= 0)
-                    {
-                        // Limit to a few decimals, first of all its pointless, second also avoid
-                        // too big numbers and consequent errors
-                        if (userInput.Length - dIndex - 1 > 5)
-                        {
-                            // Just fix it instead of giving error
-                            userInput = userInput.Remove(dIndex + 6);
-                        }
-                    }
-                }
-
-
-            }
-
-            return double.Parse(userInput);
-        }
+       
 
         /// <summary>
         /// Prints a single line to the specified location, with the specified color
@@ -1114,7 +1057,7 @@ namespace ZBC_OOP_VendingMachine
                 if (c < '0' || c > '9')
                     return false;
             }
-
+            string s = "alal";
             return true;
         }
 
@@ -1139,14 +1082,17 @@ namespace ZBC_OOP_VendingMachine
                 // If we're hiding the cursor, use another method of collecting the input
                 if (hideCursor)
                 {
-                    while (true)
+                    bool loopRunning = true;
+
+                    while (loopRunning)
                     {
                         var key = Console.ReadKey(true);
 
                         if (key.Key == ConsoleKey.Enter)
                         {
-                            break;
+                            loopRunning = false;
                         }
+
                         userInput += key.KeyChar;
                     }
                 }
@@ -1154,6 +1100,7 @@ namespace ZBC_OOP_VendingMachine
                 {
                     userInput = Console.ReadLine();
                 }
+
 
                 // Empty input (only pressed enter for example)
                 if (userInput.Length <= 0)
