@@ -184,12 +184,9 @@ namespace ZBC_OOP_VendingMachine
                             userSelection += key;
                             SelectionUpdated();
                             isSelectionValid = true;
-                            break;
                         }
                     }
 
-                    // If it's not a digit, or it's not a valid digit, back to input
-                    continue;
                 }
             } // end of while loop
 
@@ -1048,7 +1045,7 @@ namespace ZBC_OOP_VendingMachine
             foreach (char c in input)
             {
                 // Also accept commas
-                if (c == ',')
+                if (c.Equals(','))
                 {
                     continue;
                 }
@@ -1071,8 +1068,9 @@ namespace ZBC_OOP_VendingMachine
         public int GetUserInputInteger(bool hideCursor = false, bool printError = false, string phrase = "")
         {
             string userInput = "";
+            bool mainLoopRunning = true;
 
-            while (true)
+            while (mainLoopRunning)
             {
                 if (phrase != "")
                 {
@@ -1117,7 +1115,7 @@ namespace ZBC_OOP_VendingMachine
                 }
                 else
                 {
-                    break;
+                    mainLoopRunning = false;
                 }
             }
 

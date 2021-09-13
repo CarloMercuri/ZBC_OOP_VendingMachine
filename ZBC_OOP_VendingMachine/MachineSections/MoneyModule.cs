@@ -70,7 +70,7 @@ namespace ZBC_OOP_VendingMachine
         {
             if(product.Price <= availableMoney)
             {
-                SetAvailableMoney(availableMoney-= product.Price);
+                SetAvailableMoney(availableMoney -= product.Price);
                 return true;
             }
             else
